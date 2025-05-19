@@ -44,7 +44,8 @@ export default function AppNavbar({ cartItemCount }) { // Accept cartItemCount a
     color: '#0e3e8e',
     position: 'relative',
     marginLeft: '1rem',
-    marginTop: '-0.5rem', // Adjust as needed
+    marginTop: '-0.1rem',
+    marginRight: '1rem', // Adjust as needed
     height: '1.5rem',
     width: '1.5rem'
   };
@@ -52,7 +53,7 @@ export default function AppNavbar({ cartItemCount }) { // Accept cartItemCount a
   const itemCountStyle = {
     position: 'absolute',
     top: '1px',
-    right: '8px',
+    right: '1.5rem',
     backgroundColor: '#11b0d2',
     color: 'white',
     borderRadius: '50%',
@@ -81,7 +82,7 @@ export default function AppNavbar({ cartItemCount }) { // Accept cartItemCount a
 
 
 
-        <Navbar.Brand as={NavLink} to="/" onClick={closeNavbar} style={{ display: 'flex', alignItems: 'center', marginLeft: '10px' }}>
+        <Navbar.Brand as={NavLink} to="/" onClick={closeNavbar} style={{ display: 'flex', alignItems: 'center', marginLeft: '1.5rem' }}>
           <img
             src="https://i.ibb.co/whPN0QF7/logoimage.png" // Logo URL
             alt="Logo"
