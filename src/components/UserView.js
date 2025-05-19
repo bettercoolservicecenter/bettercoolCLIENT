@@ -1,16 +1,51 @@
 import { Container, Form, Button, Row, Col, Accordion } from 'react-bootstrap';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import ProductCard from './ProductCard'; // Make sure to import ProductCard
 
 export default function UserView({ productsData = [] }) {
+  const location = useLocation();
   const [productName, setProductName] = useState('');
   const [minPrice, setMinPrice] = useState('0');
   const [maxPrice, setMaxPrice] = useState('10000');
   const [products, setProducts] = useState(productsData);
+  const [isSticky, setIsSticky] = useState(false);
+  const [accordionHeight, setAccordionHeight] = useState(0);
+  const [accordionTop, setAccordionTop] = useState(0);
+  const [pendingNavbarScroll, setPendingNavbarScroll] = useState(false);
+  const accordionRef = useRef(null);
+  const allProductsRef = useRef(null); // Add this ref
 
   useEffect(() => {
     setProducts(productsData);
   }, [productsData]);
+
+  useEffect(() => {
+    // Store the original top position of the accordion
+    if (accordionRef.current) {
+      setAccordionTop(accordionRef.current.getBoundingClientRect().top + window.scrollY);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const navbarHeight = 65; // match your fixed navbar height
+      if (!accordionRef.current) return;
+
+      // Only measure height when not sticky
+      if (!isSticky) {
+        setAccordionHeight(accordionRef.current.offsetHeight);
+      }
+
+      if (window.scrollY + navbarHeight >= accordionTop) {
+        setIsSticky(true);
+      } else {
+        setIsSticky(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [accordionTop, isSticky]);
 
   const handlePriceChange = (setter, value) => {
     // Remove any non-numeric characters except decimal point
@@ -28,14 +63,27 @@ export default function UserView({ productsData = [] }) {
     setter(newValue.toString());
   };
 
-  const handleSearchByName = async () => {
+  // Scroll to All Products section
+  const scrollToAllProducts = () => {
+    setTimeout(() => {
+      if (allProductsRef.current) {
+        const navbarHeight = 65;
+        const extraOffset = 50; // Increase this for more spacing
+        const top = allProductsRef.current.getBoundingClientRect().top + window.scrollY - navbarHeight - extraOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 200); // Slightly longer delay for reliability
+  };
+
+  // Modified handleSearchByName to accept a name and scroll
+  const handleSearchByName = async (name = productName) => {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/search-by-name/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name: productName })
+        body: JSON.stringify({ name })
       });
 
       if (!response.ok) {
@@ -148,184 +196,384 @@ export default function UserView({ productsData = [] }) {
     }
   };
 
+  // This effect runs when the page loads or when navigation state changes
+  useEffect(() => {
+    if (location.state && location.state.searchCategory) {
+      handleSearchByName(location.state.searchCategory);
+      setPendingNavbarScroll(true);
+    }
+    // eslint-disable-next-line
+  }, [location.state]);
+
+  // This effect will scroll after products are updated from a navbar search
+  useEffect(() => {
+    if (pendingNavbarScroll) {
+      scrollToAllProducts();
+      setPendingNavbarScroll(false);
+    }
+  }, [products, pendingNavbarScroll]);
+
   return (
     <Container style={customStyles.container}>
       <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
         CATEGORIES
       </h2>
       <Row style={customStyles.productRow}>
-        {/* Display 3 blank cards */}
-        {[...Array(3)].map((_, index) => (
-          <Col xs={12} md={6} lg={4} key={index} className="mb-4">
-            <div 
-              style={{
-                backgroundColor: 'white',
-                borderRadius: '5px',
-                padding: '20px',
-                textAlign: 'center',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                cursor: 'pointer'
+        <style>
+          {`
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+            .premium-card {
+              background: linear-gradient(135deg, #f8fafc 60%, #e8eaf6 100%);
+              border-radius: 0;
+              box-shadow: 0 8px 32px 0 rgba(30,60,120,0.18), 0 4px 24px rgba(69,210,250,0.13);
+              border: none;
+              transition: 
+                box-shadow 0.35s cubic-bezier(.4,2,.6,1),
+                transform 0.35s cubic-bezier(.4,2,.6,1),
+                background 0.35s;
+            }
+            .premium-card:hover {
+              box-shadow: 0 20px 56px 0 rgba(69,210,250,0.22), 0 8px 32px rgba(30,60,120,0.18);
+              transform: translateY(-8px) scale(1.025);
+              background: linear-gradient(135deg, #f8fafc 40%, #e8faff 100%);
+            }
+            .premium-card-img {
+              transition: transform 0.35s cubic-bezier(.4,2,.6,1), filter 0.3s;
+              border-radius: 0;
+              box-shadow: none;
+              max-height: 320px; /* Increased for more height */
+              width: 95%;        /* Almost full width of the card */
+              object-fit: contain;
+              margin-bottom: 10px;
+              margin-left: auto;
+              margin-right: auto;
+              display: block;
+            }
+            .premium-card:hover .premium-card-img {
+              transform: scale(1.06) rotate(-1deg);
+              filter: brightness(1.08) saturate(1.1);
+              box-shadow: none;
+            }
+            .premium-title {
+              font-family: 'Poppins', 'Roboto', sans-serif;
+              font-weight: 600;
+              color: #0c4798;
+              letter-spacing: 1px;
+              margin: 10px 0 4px 0;
+            }
+            .premium-desc {
+              margin: 8px 0;
+              color: #444;
+              font-weight: 400;
+              font-size: 0.95rem; /* Reduced text size */
+            }
+            .premium-accent {
+              font-weight: 700;
+              letter-spacing: 1px;
+              color: #0c4798;
+            }
+            .premium-viewmore-btn {
+              padding: 6px 0;
+              min-width: 90px;
+              max-width: 110px;
+              width: 100%;
+              font-size: 0.95rem;
+              border: 1px solid #0c4798;
+              color: #0c4798;
+              text-decoration: none;
+              border-radius: 6px;
+              transition: all 0.3s cubic-bezier(.4,2,.6,1);
+              font-weight: 600;
+              letter-spacing: 0.5px;
+              background: rgba(255,255,255,0.85);
+              box-shadow: 0 2px 8px rgba(69,210,250,0.07);
+              margin: 0 auto;
+            }
+            .premium-viewmore-btn:hover, .premium-viewmore-btn:focus {
+              background: #0c4798;
+              color: #fff !important;
+              border: none;
+              box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+              transform: scale(1.06);
+            }
+            .premium-viewmore-btn:hover .premium-accent,
+            .premium-viewmore-btn:focus .premium-accent {
+              color: #fff !important;
+            }
+          `}
+        </style>
+        {/* Card 1: Air Conditioner */}
+        <Col xs={12} md={6} lg={4} className="mb-4">
+          <div className="premium-card"
+            style={{
+              padding: '20px 16px 16px 16px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              minHeight: 320, // Reduced from 380
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+            onClick={() => handleSearchByName('Air Conditioner')}
+          >
+            <img 
+              src="https://i.ibb.co/R4ZsKHqs/can-you-generate-an-image-of-a-air-conditioner-in-a-room-with-sky-blue-ambient-it-should-feel-luxur.jpg"
+              alt="Air Conditioner"
+              className="premium-card-img"
+              style={{ display: 'block', margin: '0 auto', maxHeight: 320, width: '95%', objectFit: 'contain' }} 
+            />
+            <p className="premium-title">Air Conditioner</p>
+            <p className="premium-desc">Stay cool with our latest air conditioners.</p>
+            <Button 
+              variant="link" 
+              className="premium-viewmore-btn"
+              onClick={e => {
+                e.stopPropagation();
+                handleSearchByName('Air Conditioner');
               }}
             >
-              <img 
-                src="https://via.placeholder.com/150"
-                alt="Placeholder"
-                style={{ display: 'block', margin: '0 auto 10px auto' }}
-              />
-              <p style={{ fontWeight: 'bold', margin: '10px 0' }}>Product Name {index + 1}</p>
-              <p style={{ margin: '10px 0' }}>Description goes here</p>
-              <Button 
-                variant="link" 
-                style={{
-                  padding: '8px 14px',
-                  border: '1px solid transparent',
-                  color: '#0e368c',
-                  textDecoration: 'none',
-                  borderRadius: '5px',
-                  transition: 'all 0.3s ease',
-                  boxShadow: 'none',
-                  fontWeight: 'normal',
-                  whiteSpace: 'nowrap',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.border = '1px solid #0e368c';
-                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.border = '1px solid transparent';
-                  e.currentTarget.style.boxShadow = 'none';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-                onClick={() => {
-                  console.log('View more clicked');
-                }}
-              >
-                View More
-              </Button>
-            </div>
-          </Col>
-        ))}
+              <span className="premium-accent">View More</span>
+            </Button>
+          </div>
+        </Col>
+
+        {/* Card 2: Refrigerator */}
+        <Col xs={12} md={6} lg={4} className="mb-4">
+          <div className="premium-card"
+            style={{
+              padding: '20px 16px 16px 16px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              minHeight: 320, // Reduced from 380
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+            onClick={() => handleSearchByName('Refrigerator')}
+          >
+            <img 
+              src="https://i.ibb.co/082ZRtw/can-you-generate-an-image-of-a-refrigerator-in-a-room-with-sky-blue-ambient-it-should-feel-luxuriou.jpg"
+              alt="Refrigerator"
+              className="premium-card-img"
+              style={{ display: 'block', margin: '0 auto', maxHeight: 320, width: '95%', objectFit: 'contain' }} 
+            />
+            <p className="premium-title">Refrigerator</p>
+            <p className="premium-desc">Keep your food fresh and cool.</p>
+            <Button 
+              variant="link" 
+              className="premium-viewmore-btn"
+              onClick={e => {
+                e.stopPropagation();
+                handleSearchByName('Refrigerator');
+              }}
+            >
+              <span className="premium-accent">View More</span>
+            </Button>
+          </div>
+        </Col>
+
+        {/* Card 3: Washing Machine */}
+        <Col xs={12} md={6} lg={4} className="mb-4">
+          <div className="premium-card"
+            style={{
+              padding: '20px 16px 16px 16px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              minHeight: 320, // Reduced from 380
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}
+            onClick={() => handleSearchByName('Washing Machine')}
+          >
+            <img 
+              src="https://i.ibb.co/YBXyMtQk/can-you-generate-an-image-of-a-washing-machine-in-a-room-with-sky-blue-ambient-it-should-feel-luxur.jpg"
+              alt="Washing Machine"
+              className="premium-card-img"
+              style={{ display: 'block', margin: '0 auto', maxHeight: 320, width: '95%', objectFit: 'contain' }} 
+            />
+            <p className="premium-title">Washing Machine</p>
+            <p className="premium-desc">Efficient and powerful cleaning.</p>
+            <Button 
+              variant="link" 
+              className="premium-viewmore-btn"
+              onClick={e => {
+                e.stopPropagation();
+                handleSearchByName('Washing Machine');
+              }}
+            >
+              <span className="premium-accent">View More</span>
+            </Button>
+          </div>
+        </Col>
       </Row>
 
       {/* Accordion goes here */}
-      <div style={customStyles.accordionContainer}>
-        <style>{customAccordionStyles}</style>
-        <Accordion className="mb-4" style={accordionStyle}>
-          <Accordion.Item eventKey="0" className="border">
-            <Accordion.Header>
-              <span className="fw-bold">Product Search</span>
-            </Accordion.Header>
-            <Accordion.Body>
-              <Form className="compact-form">
-                {/* Product Name field */}
-                <Form.Group className="mb-2">
-                  <Form.Label className="mb-1 small">Product Name:</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={productName}
-                    onChange={(e) => setProductName(e.target.value)}
-                    size="sm"
-                  />
-                </Form.Group>
-                
-                {/* Search by Name button on a single line */}
-                <div className="mb-3">
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    onClick={handleSearchByName}
-                    style={searchButtonStyle}
-                  >
-                    Search by Name
-                  </Button>
-                </div>
+      <style>
+        {`
+          @media (min-width: 992px) {
+            .sticky-accordion {
+              position: sticky;
+              top: 70px; /* Slightly more than navbar height */
+              z-index: 900; /* Lower than navbar z-index */
+            }
+          }
+        `}
+      </style>
+      <>
+        {/* Sticky Accordion Placeholder */}
+        <div style={{ height: isSticky ? accordionHeight : 0 }} />
 
-                {/* Price Range section - both fields side by side on the left */}
-                <div className="d-flex mb-3" style={{ maxWidth: '400px' }}>
-                  <div className="me-3">
-                    <Form.Label className="mb-1 small">Min Price:</Form.Label>
-                    <div className="d-flex">
-                      <Button 
-                        style={{...priceButtonStyle, height: '31px'}}
-                        onClick={() => decrementPrice(setMinPrice, minPrice)}
-                        size="sm"
-                      >
-                        -
-                      </Button>
-                      <Form.Control
-                        type="text"
-                        value={minPrice}
-                        onChange={(e) => handlePriceChange(setMinPrice, e.target.value)}
-                        style={{...priceInputStyle, height: '31px'}}
-                        size="sm"
-                      />
-                      <Button 
-                        style={{...priceButtonStyle, height: '31px'}}
-                        onClick={() => incrementPrice(setMinPrice, minPrice)}
-                        size="sm"
-                      >
-                        +
-                      </Button>
+        <div
+          ref={accordionRef}
+          style={{
+            ...customStyles.accordionContainer,
+            padding: 0, // Always no padding for both static and sticky
+            margin: '0 auto', // Always center
+            position: isSticky ? 'fixed' : 'static',
+            top: isSticky ? 65 : 'auto',
+            left: isSticky ? '50%' : undefined,
+            transform: isSticky ? 'translateX(-50%)' : undefined,
+            zIndex: 900,
+            width: '600px', // Always fixed width for both
+            maxWidth: '95vw',
+            background: '#fff', // Always white background
+            boxShadow: '0 8px 32px 0 rgba(30,60,120,0.18), 0 4px 24px rgba(69,210,250,0.13)', // Always shadow
+            minHeight: 'auto',
+            height: 'auto',
+            overflow: 'visible'
+          }}
+        >
+          <style>{customAccordionStyles}</style>
+          <Accordion
+            className={isSticky ? '' : 'mb-4'}
+            style={{
+              margin: isSticky ? 0 : '2rem 0 1.5rem 0',
+              padding: isSticky ? 0 : undefined,
+              minHeight: isSticky ? 'auto' : undefined,
+              height: isSticky ? 'auto' : undefined,
+              overflow: isSticky ? 'visible' : undefined
+            }}
+          >
+            <Accordion.Item eventKey="0" className="border">
+              <Accordion.Header>
+                <span className="fw-bold">Filter</span>
+              </Accordion.Header>
+              <Accordion.Body>
+                <Form className="compact-form">
+                  {/* Product Name field */}
+                  <Form.Group className="mb-2">
+                    <Form.Label className="mb-1 small">Product Name:</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={productName}
+                      onChange={(e) => setProductName(e.target.value)}
+                      size="sm"
+                    />
+                  </Form.Group>
+                  
+                  {/* Search by Name button on a single line */}
+                  <div className="mb-3">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={handleSearchByName}
+                      style={searchButtonStyle}
+                    >
+                      Search by Name
+                    </Button>
+                  </div>
+
+                  {/* Price Range section - both fields side by side on the left */}
+                  <div className="d-flex mb-3" style={{ maxWidth: '400px' }}>
+                    <div className="me-3">
+                      <Form.Label className="mb-1 small">Min Price:</Form.Label>
+                      <div className="d-flex">
+                        <Button 
+                          style={{...priceButtonStyle, height: '31px'}}
+                          onClick={() => decrementPrice(setMinPrice, minPrice)}
+                          size="sm"
+                        >
+                          -
+                        </Button>
+                        <Form.Control
+                          type="text"
+                          value={minPrice}
+                          onChange={(e) => handlePriceChange(setMinPrice, e.target.value)}
+                          style={{...priceInputStyle, height: '31px'}}
+                          size="sm"
+                        />
+                        <Button 
+                          style={{...priceButtonStyle, height: '31px'}}
+                          onClick={() => incrementPrice(setMinPrice, minPrice)}
+                          size="sm"
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Form.Label className="mb-1 small">Max Price:</Form.Label>
+                      <div className="d-flex">
+                        <Button 
+                          style={{...priceButtonStyle, height: '31px'}}
+                          onClick={() => decrementPrice(setMaxPrice, maxPrice)}
+                          size="sm"
+                        >
+                          -
+                        </Button>
+                        <Form.Control
+                          type="text"
+                          value={maxPrice}
+                          onChange={(e) => handlePriceChange(setMaxPrice, e.target.value)}
+                          style={{...priceInputStyle, height: '31px'}}
+                          size="sm"
+                        />
+                        <Button 
+                          style={{...priceButtonStyle, height: '31px'}}
+                          onClick={() => incrementPrice(setMaxPrice, maxPrice)}
+                          size="sm"
+                        >
+                          +
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <Form.Label className="mb-1 small">Max Price:</Form.Label>
-                    <div className="d-flex">
-                      <Button 
-                        style={{...priceButtonStyle, height: '31px'}}
-                        onClick={() => decrementPrice(setMaxPrice, maxPrice)}
-                        size="sm"
-                      >
-                        -
-                      </Button>
-                      <Form.Control
-                        type="text"
-                        value={maxPrice}
-                        onChange={(e) => handlePriceChange(setMaxPrice, e.target.value)}
-                        style={{...priceInputStyle, height: '31px'}}
-                        size="sm"
-                      />
-                      <Button 
-                        style={{...priceButtonStyle, height: '31px'}}
-                        onClick={() => incrementPrice(setMaxPrice, maxPrice)}
-                        size="sm"
-                      >
-                        +
-                      </Button>
-                    </div>
+                  {/* Search by Price and Clear buttons */}
+                  <div className="d-flex mt-2">
+                    <Button 
+                      variant="primary" 
+                      size="sm"
+                      onClick={handleSearchByPrice}
+                      style={searchButtonStyle}
+                      className="me-2"
+                    >
+                      Search by Price
+                    </Button>
+                    <Button 
+                      variant="danger" 
+                      size="sm"
+                      onClick={handleClear}
+                      style={searchButtonStyle}
+                    >
+                      Clear
+                    </Button>
                   </div>
-                </div>
-                
-                {/* Search by Price and Clear buttons */}
-                <div className="d-flex mt-2">
-                  <Button 
-                    variant="primary" 
-                    size="sm"
-                    onClick={handleSearchByPrice}
-                    style={searchButtonStyle}
-                    className="me-2"
-                  >
-                    Search by Price
-                  </Button>
-                  <Button 
-                    variant="danger" 
-                    size="sm"
-                    onClick={handleClear}
-                    style={searchButtonStyle}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              </Form>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
-      </div>
+                </Form>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
+        </div>
+      </>
 
       {/* All Products */}
-      <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
+      <h2
+        ref={allProductsRef}
+        style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }}
+        className="text-center mb-4"
+      >
         All Products
       </h2>
       <Row style={customStyles.productRow}>

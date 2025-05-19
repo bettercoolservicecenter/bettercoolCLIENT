@@ -262,30 +262,33 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
               )}
               {/* Search Text Below the Search Bar as Links */}
               <div style={{ ...searchTextStyle, marginTop: '0.1rem', textAlign: 'left', width: '80%' }}>
-                <span 
-                  style={{ marginRight: '10px', color: 'black', cursor: 'pointer' }} 
-                  onClick={() => handleSearchClick('Air Conditioner')}
-                  onMouseEnter={(e) => e.target.style.color = 'blue'} 
-                  onMouseLeave={(e) => e.target.style.color = 'black'}
+                <Link 
+                  to="/products"
+                  state={{ searchCategory: 'Air Conditioner' }}
+                  style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
+                  onMouseEnter={e => e.target.style.color = 'blue'}
+                  onMouseLeave={e => e.target.style.color = 'black'}
                 >
                   Air Conditioner
-                </span>
-                <span 
-                  style={{ marginRight: '10px', color: 'black', cursor: 'pointer' }} 
-                  onClick={() => handleSearchClick('Refrigerator')}
-                  onMouseEnter={(e) => e.target.style.color = 'blue'} 
-                  onMouseLeave={(e) => e.target.style.color = 'black'}
+                </Link>
+                <Link 
+                  to="/products"
+                  state={{ searchCategory: 'Refrigerator' }}
+                  style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
+                  onMouseEnter={e => e.target.style.color = 'blue'}
+                  onMouseLeave={e => e.target.style.color = 'black'}
                 >
                   Refrigerator
-                </span>
-                <span 
-                  style={{ color: 'black', cursor: 'pointer' }} 
-                  onClick={() => handleSearchClick('Washing Machine')}
-                  onMouseEnter={(e) => e.target.style.color = 'blue'} 
-                  onMouseLeave={(e) => e.target.style.color = 'black'}
+                </Link>
+                <Link 
+                  to="/products"
+                  state={{ searchCategory: 'Washing Machine' }}
+                  style={{ color: 'black', cursor: 'pointer', textDecoration: 'none' }}
+                  onMouseEnter={e => e.target.style.color = 'blue'}
+                  onMouseLeave={e => e.target.style.color = 'black'}
                 >
                   Washing Machine
-                </span>
+                </Link>
               </div>
             </form>
 

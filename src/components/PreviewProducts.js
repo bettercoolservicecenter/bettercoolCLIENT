@@ -7,21 +7,31 @@ export default function PreviewProducts(props) {
 
   return (
     <Col xs={12} md={6} lg={breakPoint} style={{ padding: '0' }}>
+      <style>
+        {`
+          .subtle-preview-card {
+            transition: box-shadow 0.25s cubic-bezier(.4,2,.6,1), transform 0.25s cubic-bezier(.4,2,.6,1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+          }
+          .subtle-preview-card:hover {
+            box-shadow: 0 8px 24px rgba(30,60,120,0.13);
+            transform: translateY(-4px) scale(1.015);
+          }
+          .subtle-preview-img {
+            transition: transform 0.25s cubic-bezier(.4,2,.6,1);
+          }
+          .subtle-preview-card:hover .subtle-preview-img {
+            transform: scale(1.04);
+          }
+        `}
+      </style>
       <Link to={`/products/${_id}`} style={{ textDecoration: 'none' }}>
         <Card 
-          className="h-100 d-flex flex-column" 
+          className="h-100 d-flex flex-column subtle-preview-card" 
           style={{ 
             border: 'none',
             minHeight: '100px',
-            borderRadius: '0',
-            transition: 'box-shadow 0.3s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.4)';
-            e.currentTarget.style.outline = 'none';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.boxShadow = 'none';
+            borderRadius: '0'
           }}
         >
           <div style={{ 
@@ -35,6 +45,7 @@ export default function PreviewProducts(props) {
             <img 
               src={imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
               alt={name}
+              className="subtle-preview-img"
               style={{
                 maxWidth: '100%',
                 maxHeight: '100%',
