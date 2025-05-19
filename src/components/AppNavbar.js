@@ -102,7 +102,6 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
     top: 0,
     zIndex: 1000,
     width: '100%',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
   };
 
   const linkStyle = {
@@ -143,7 +142,12 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
 
   return (
     <div style={{ width: '100vw', overflowX: 'hidden', margin: 0, padding: 0 }}>
-      <Navbar style={navbarStyle} variant="light" className="ps-0" expand="lg"> {/* Expand navbar for larger screens */}
+      <Navbar
+        style={navbarStyle}
+        variant="light"
+        className="ps-0 navbar-shadow"
+        expand="lg"
+      >
         <Container fluid>
           <Navbar.Brand as={NavLink} to="/" onClick={closeNavbar} style={{ display: 'flex', alignItems: 'center', marginLeft: '1.5rem' }}>
             <img

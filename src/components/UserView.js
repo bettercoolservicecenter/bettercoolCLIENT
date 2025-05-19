@@ -1,14 +1,15 @@
 import { Container, Form, Button, Row, Col, Accordion } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
+import ProductCard from './ProductCard'; // Make sure to import ProductCard
 
 export default function UserView({ productsData = [] }) {
   const [productName, setProductName] = useState('');
   const [minPrice, setMinPrice] = useState('0');
   const [maxPrice, setMaxPrice] = useState('10000');
+  const [products, setProducts] = useState(productsData);
 
-  // Removed products state since we are displaying blank cards
   useEffect(() => {
-    // No need to set products since we are displaying blank cards
+    setProducts(productsData);
   }, [productsData]);
 
   const handlePriceChange = (setter, value) => {
@@ -42,12 +43,10 @@ export default function UserView({ productsData = [] }) {
       }
 
       const data = await response.json();
-      // Filter out inactive products
       const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
-      // No need to set products since we are displaying blank cards
+      setProducts(activeProducts);
     } catch (error) {
       console.error('Error searching products:', error);
-      // No need to set products since we are displaying blank cards
     }
   };
 
@@ -69,12 +68,10 @@ export default function UserView({ productsData = [] }) {
       }
       
       const data = await response.json();
-      // Filter out inactive products
       const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
-      // No need to set products since we are displaying blank cards
+      setProducts(activeProducts);
     } catch (error) {
       console.error('Error searching by price:', error);
-      // No need to set products since we are displaying blank cards
     }
   };
 
@@ -82,7 +79,7 @@ export default function UserView({ productsData = [] }) {
     setProductName('');
     setMinPrice('0');
     setMaxPrice('100000');
-    // No need to set products since we are displaying blank cards
+    setProducts(productsData);
   };
 
   const priceInputStyle = {
@@ -138,143 +135,24 @@ export default function UserView({ productsData = [] }) {
   const customStyles = {
     container: {
       maxWidth: '100%',
-      padding: '0 15px' // Keep standard container padding
+      padding: '0 15px',
+      marginTop: '6rem' // Add this line to match Home.js top margin
     },
     productRow: {
-      margin: '0 -15px' // Negative margin to offset card padding
+      margin: '0 -15px'
     },
     accordionContainer: {
       padding: '0',
-      maxWidth: 'calc(100% - 30px)', // Account for the padding of the cards
+      maxWidth: 'calc(100% - 30px)',
       margin: '0 auto'
     }
   };
 
   return (
-    <Container style={customStyles.container} className="mt-5">
-      <style>{customAccordionStyles}</style>
-      <Row>
-        <Col xs={12}>
-          <div style={customStyles.accordionContainer}>
-            <Accordion className="mb-4" style={accordionStyle}>
-              <Accordion.Item eventKey="0" className="border">
-                <Accordion.Header>
-                  <span className="fw-bold">Product Search</span>
-                </Accordion.Header>
-                <Accordion.Body>
-                  <Form className="compact-form">
-                    {/* Product Name field */}
-                    <Form.Group className="mb-2">
-                      <Form.Label className="mb-1 small">Product Name:</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={productName}
-                        onChange={(e) => setProductName(e.target.value)}
-                        size="sm"
-                      />
-                    </Form.Group>
-                    
-                    {/* Search by Name button on a single line */}
-                    <div className="mb-3">
-                      <Button 
-                        variant="primary" 
-                        size="sm"
-                        onClick={handleSearchByName}
-                        style={searchButtonStyle}
-                      >
-                        Search by Name
-                      </Button>
-                    </div>
-
-                    {/* Price Range section - both fields side by side on the left */}
-                    <div className="d-flex mb-3" style={{ maxWidth: '400px' }}>
-                      <div className="me-3">
-                        <Form.Label className="mb-1 small">Min Price:</Form.Label>
-                        <div className="d-flex">
-                          <Button 
-                            style={{...priceButtonStyle, height: '31px'}}
-                            onClick={() => decrementPrice(setMinPrice, minPrice)}
-                            size="sm"
-                          >
-                            -
-                          </Button>
-                          <Form.Control
-                            type="text"
-                            value={minPrice}
-                            onChange={(e) => handlePriceChange(setMinPrice, e.target.value)}
-                            style={{...priceInputStyle, height: '31px'}}
-                            size="sm"
-                          />
-                          <Button 
-                            style={{...priceButtonStyle, height: '31px'}}
-                            onClick={() => incrementPrice(setMinPrice, minPrice)}
-                            size="sm"
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <Form.Label className="mb-1 small">Max Price:</Form.Label>
-                        <div className="d-flex">
-                          <Button 
-                            style={{...priceButtonStyle, height: '31px'}}
-                            onClick={() => decrementPrice(setMaxPrice, maxPrice)}
-                            size="sm"
-                          >
-                            -
-                          </Button>
-                          <Form.Control
-                            type="text"
-                            value={maxPrice}
-                            onChange={(e) => handlePriceChange(setMaxPrice, e.target.value)}
-                            style={{...priceInputStyle, height: '31px'}}
-                            size="sm"
-                          />
-                          <Button 
-                            style={{...priceButtonStyle, height: '31px'}}
-                            onClick={() => incrementPrice(setMaxPrice, maxPrice)}
-                            size="sm"
-                          >
-                            +
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Search by Price and Clear buttons */}
-                    <div className="d-flex mt-2">
-                      <Button 
-                        variant="primary" 
-                        size="sm"
-                        onClick={handleSearchByPrice}
-                        style={searchButtonStyle}
-                        className="me-2"
-                      >
-                        Search by Price
-                      </Button>
-                      <Button 
-                        variant="danger" 
-                        size="sm"
-                        onClick={handleClear}
-                        style={searchButtonStyle}
-                      >
-                        Clear
-                      </Button>
-                    </div>
-                  </Form>
-                </Accordion.Body>
-              </Accordion.Item>
-            </Accordion>
-          </div>
-
-          <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
-            CATEGORIES
-          </h2>
-        </Col>
-      </Row>
-      
+    <Container style={customStyles.container}>
+      <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
+        CATEGORIES
+      </h2>
       <Row style={customStyles.productRow}>
         {/* Display 3 blank cards */}
         {[...Array(3)].map((_, index) => (
@@ -290,12 +168,12 @@ export default function UserView({ productsData = [] }) {
               }}
             >
               <img 
-                src="https://via.placeholder.com/150" // Placeholder image
+                src="https://via.placeholder.com/150"
                 alt="Placeholder"
-                style={{ display: 'block', margin: '0 auto 10px auto' }} // Center the image
+                style={{ display: 'block', margin: '0 auto 10px auto' }}
               />
-              <p style={{ fontWeight: 'bold', margin: '10px 0' }}>Product Name {index + 1}</p> {/* Bold name */}
-              <p style={{ margin: '10px 0' }}>Description goes here</p> {/* Centered description */}
+              <p style={{ fontWeight: 'bold', margin: '10px 0' }}>Product Name {index + 1}</p>
+              <p style={{ margin: '10px 0' }}>Description goes here</p>
               <Button 
                 variant="link" 
                 style={{
@@ -326,6 +204,134 @@ export default function UserView({ productsData = [] }) {
                 View More
               </Button>
             </div>
+          </Col>
+        ))}
+      </Row>
+
+      {/* Accordion goes here */}
+      <div style={customStyles.accordionContainer}>
+        <style>{customAccordionStyles}</style>
+        <Accordion className="mb-4" style={accordionStyle}>
+          <Accordion.Item eventKey="0" className="border">
+            <Accordion.Header>
+              <span className="fw-bold">Product Search</span>
+            </Accordion.Header>
+            <Accordion.Body>
+              <Form className="compact-form">
+                {/* Product Name field */}
+                <Form.Group className="mb-2">
+                  <Form.Label className="mb-1 small">Product Name:</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    size="sm"
+                  />
+                </Form.Group>
+                
+                {/* Search by Name button on a single line */}
+                <div className="mb-3">
+                  <Button 
+                    variant="primary" 
+                    size="sm"
+                    onClick={handleSearchByName}
+                    style={searchButtonStyle}
+                  >
+                    Search by Name
+                  </Button>
+                </div>
+
+                {/* Price Range section - both fields side by side on the left */}
+                <div className="d-flex mb-3" style={{ maxWidth: '400px' }}>
+                  <div className="me-3">
+                    <Form.Label className="mb-1 small">Min Price:</Form.Label>
+                    <div className="d-flex">
+                      <Button 
+                        style={{...priceButtonStyle, height: '31px'}}
+                        onClick={() => decrementPrice(setMinPrice, minPrice)}
+                        size="sm"
+                      >
+                        -
+                      </Button>
+                      <Form.Control
+                        type="text"
+                        value={minPrice}
+                        onChange={(e) => handlePriceChange(setMinPrice, e.target.value)}
+                        style={{...priceInputStyle, height: '31px'}}
+                        size="sm"
+                      />
+                      <Button 
+                        style={{...priceButtonStyle, height: '31px'}}
+                        onClick={() => incrementPrice(setMinPrice, minPrice)}
+                        size="sm"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Form.Label className="mb-1 small">Max Price:</Form.Label>
+                    <div className="d-flex">
+                      <Button 
+                        style={{...priceButtonStyle, height: '31px'}}
+                        onClick={() => decrementPrice(setMaxPrice, maxPrice)}
+                        size="sm"
+                      >
+                        -
+                      </Button>
+                      <Form.Control
+                        type="text"
+                        value={maxPrice}
+                        onChange={(e) => handlePriceChange(setMaxPrice, e.target.value)}
+                        style={{...priceInputStyle, height: '31px'}}
+                        size="sm"
+                      />
+                      <Button 
+                        style={{...priceButtonStyle, height: '31px'}}
+                        onClick={() => incrementPrice(setMaxPrice, maxPrice)}
+                        size="sm"
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Search by Price and Clear buttons */}
+                <div className="d-flex mt-2">
+                  <Button 
+                    variant="primary" 
+                    size="sm"
+                    onClick={handleSearchByPrice}
+                    style={searchButtonStyle}
+                    className="me-2"
+                  >
+                    Search by Price
+                  </Button>
+                  <Button 
+                    variant="danger" 
+                    size="sm"
+                    onClick={handleClear}
+                    style={searchButtonStyle}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </Form>
+            </Accordion.Body>
+          </Accordion.Item>
+        </Accordion>
+      </div>
+
+      {/* All Products */}
+      <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
+        All Products
+      </h2>
+      <Row style={customStyles.productRow}>
+        {products.map(product => (
+          <Col xs={12} md={6} lg={4} key={product._id} className="mb-4">
+            <ProductCard productProp={product} />
           </Col>
         ))}
       </Row>

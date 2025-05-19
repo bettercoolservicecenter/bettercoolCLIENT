@@ -28,10 +28,23 @@ code {
   padding: 0 !important; /* Override any existing padding */
 }
 
-.navbar, .container-fluid {
+.navbar {
   width: 100vw;
   padding-left: 0 !important;
   padding-right: 0 !important;
+  /* Removed box-shadow */
+}
+
+.navbar-shadow {
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.container-fluid {
+  width: 100vw;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  /* Removed box-shadow */
 }
 
 * {
