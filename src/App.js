@@ -18,6 +18,7 @@ import { UserProvider } from './context/UserContext';
 import 'notyf/notyf.min.css';
 import Cart from './pages/Cart';
 import Bookings from './pages/Bookings';
+import './index.css'; // Adjust the path as necessary
 
 function App() {
   const [user, setUser] = useState({
@@ -25,6 +26,7 @@ function App() {
     isAdmin: null
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [cartItemCount, setCartItemCount] = useState(0);
 
   function unsetUser() {
     localStorage.clear();
@@ -33,6 +35,26 @@ function App() {
       isAdmin: null
     });
   }
+
+  const fetchCartItemCount = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/cart-item-count`, {
+        headers: {
+          // Include any necessary headers, such as authorization if needed
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCartItemCount(data.totalQuantity); // Update the cart item count
+      }
+    } catch (error) {
+      console.error('Error fetching cart item count:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCartItemCount();
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -65,6 +87,11 @@ function App() {
     }
   }, []);
 
+  // Function to update cart item count
+  const updateCartItemCount = (count) => {
+    setCartItemCount(count);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -72,25 +99,25 @@ function App() {
   return (
     <UserProvider value={{ user, setUser, unsetUser }}>
       <Router>
-        <AppNavbar />
-        <Container>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/logout" element={<Logout />} />
-            <Route path="/products/:productId" element={<ProductView />} />
-            <Route path="*" element={<Error />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/bookings" element={<Bookings />} />
-            <Route path="/bookings/:email" element={<Bookings />} />
-          </Routes>
-        </Container>
+        <AppNavbar cartItemCount={cartItemCount} />
+        {/* 🚫 Remove Container, it's the cause of extra spacing */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/logout" element={<Logout />} />
+          <Route path="/products/:productId" element={<ProductView />} />
+          <Route path="/cart" element={<Cart setCartItemCount={updateCartItemCount} />} />
+          <Route path="/bookings" element={<Bookings />} />
+          <Route path="/bookings/:email" element={<Bookings />} />
+          <Route path="*" element={<Error />} />
+        </Routes>
       </Router>
     </UserProvider>
   );
+  
 }
 
 export default App;

@@ -60,7 +60,7 @@ const GuestInfoModal = ({ show, handleClose, handleSubmit }) => {
   );
 };
 
-export default function Cart() {
+export default function Cart({ setCartItemCount }) {
   const [cart, setCart] = useState(null);
   const [products, setProducts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -70,6 +70,7 @@ export default function Cart() {
 
   useEffect(() => {
     fetchCart();
+    fetchCartItemCount(); // Fetch cart item count when the component mounts
   }, []);
 
   useEffect(() => {
@@ -78,16 +79,35 @@ export default function Cart() {
     }
   }, [cart]);
 
+  const fetchCartItemCount = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/cart-item-count`, {
+        headers: {
+          // Include any necessary headers, such as authorization if needed
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setCartItemCount(data.totalQuantity); // Update the cart item count
+      }
+    } catch (error) {
+      console.error('Error fetching cart item count:', error);
+    }
+  };
+
   const fetchCart = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/get-cart`, {
-        // No Authorization header for unauthenticated access
-      });
-
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/get-cart`);
       const data = await response.json();
 
       if (response.ok) {
         setCart(data.cart);
+        // Calculate total item count based on quantities
+        let totalItemCount = 0;
+        data.cart.cartItems.forEach(item => {
+          totalItemCount += item.quantity; // Sum the quantities
+        });
+        setCartItemCount(totalItemCount); // Update the cart item count
       } else {
         notyf.error(data.message || 'Failed to fetch cart');
       }
@@ -143,6 +163,12 @@ export default function Cart() {
           cartItems: data.updatedCart.cartItems,
           totalPrice: data.updatedCart.totalPrice
         }));
+        // Update the cart item count based on the new cart state
+        let totalItemCount = 0;
+        data.updatedCart.cartItems.forEach(item => {
+          totalItemCount += item.quantity; // Sum the quantities
+        });
+        setCartItemCount(totalItemCount);
         notyf.success('Quantity updated successfully');
       } else {
         notyf.error(data.message || 'Failed to update quantity');
@@ -157,7 +183,6 @@ export default function Cart() {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/${productId}/remove-from-cart`, {
         method: 'PATCH',
-        // Removed Authorization header for unauthenticated access
       });
 
       const data = await response.json();
@@ -168,6 +193,12 @@ export default function Cart() {
           cartItems: data.updatedCart.cartItems,
           totalPrice: data.updatedCart.totalPrice
         }));
+        // Update the cart item count based on the new cart state
+        let totalItemCount = 0;
+        data.updatedCart.cartItems.forEach(item => {
+          totalItemCount += item.quantity; // Sum the quantities
+        });
+        setCartItemCount(totalItemCount);
         notyf.success('Item removed from cart successfully');
       } else {
         notyf.error(data.message || 'Failed to remove item from cart');
@@ -182,13 +213,13 @@ export default function Cart() {
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/clear-cart`, {
         method: 'PUT',
-        // Removed Authorization header for unauthenticated access
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setCart(data.cart);
+        setCartItemCount(0); // Reset the count here
         notyf.success('Cart cleared successfully');
       } else {
         notyf.error(data.message || 'Failed to clear cart');
@@ -228,41 +259,72 @@ export default function Cart() {
 
   const handleBookNow = async (guestInfo) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${guestInfo.email}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: guestInfo.name,
-          phoneNumber: guestInfo.phoneNumber,
-          email: guestInfo.email,
-          totalPrice: cart.totalPrice,
-          productsBooked: cart.cartItems.map(item => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            subtotal: item.subtotal,
-          })),
-        }),
-      });
+        console.log("Fetching bookings for email:", guestInfo.email); // Log the email being fetched
 
-      const data = await response.json();
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${guestInfo.email}`, {
+            headers: {
+                // No Authorization header for unauthenticated access
+            }
+        });
 
-      if (response.ok) {
-        notyf.success('Booking placed successfully');
-        setCart(null);
-        navigate(`/bookings/${guestInfo.email}`);
-      } else {
-        notyf.error(data.message || 'Failed to place booking');
-        if (data.message === 'You already have a booking.') {
-          navigate(`/bookings/${guestInfo.email}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Error fetching bookings:", errorData); // Log the error data
+            notyf.error(errorData.message || 'Failed to fetch bookings');
+            return; // Prevent further execution
         }
-      }
+
+        const data = await response.json();
+        console.log("Booking data received:", data); // Log the entire response data
+
+        // Check if there are any pending or confirmed bookings
+        const hasPendingOrConfirmed = data.hasPendingOrConfirmed;
+
+        // Allow booking if there are no bookings at all
+        if (!data.bookings.length || !hasPendingOrConfirmed) {
+            // Prepare booking request body
+            const bookingBody = {
+                name: guestInfo.name,
+                phoneNumber: guestInfo.phoneNumber,
+                email: guestInfo.email,
+                totalPrice: cart.totalPrice,
+                productsBooked: cart.cartItems.map(item => ({
+                    productId: item.productId,
+                    quantity: item.quantity,
+                    subtotal: item.subtotal,
+                })),
+            };
+
+            console.log("Booking request body:", bookingBody); // Log the request body
+
+            const bookingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${guestInfo.email}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bookingBody),
+            });
+
+            const bookingData = await bookingResponse.json();
+
+            if (bookingResponse.ok) {
+                notyf.success('Booking placed successfully');
+                await handleClearCart();
+                setCart(null);
+                navigate(`/bookings/${guestInfo.email}`);
+            } else {
+                notyf.error(bookingData.message || 'Failed to place booking');
+            }
+        } else {
+            notyf.error('You cannot book again while you have a pending or confirmed booking.');
+            navigate(`/bookings/${guestInfo.email}`); // Redirect to bookings page
+            return; // Prevent further execution
+        }
     } catch (error) {
-      console.error('Error during booking:', error);
-      notyf.error('An error occurred while processing your booking');
+        console.error('Error during booking:', error);
+        notyf.error('An error occurred while processing your booking');
     }
-  };
+};
 
   return (
     <Container className="mt-5">

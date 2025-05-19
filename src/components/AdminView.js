@@ -33,7 +33,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
   
   const [products, setProducts] = useState([]);
   const [showBookings, setShowBookings] = useState(false);
-  const [allBookings, setAllBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState({});
   const [expandedUsers, setExpandedUsers] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [newProduct, setNewProduct] = useState({
@@ -83,19 +83,10 @@ export default function AdminDashboard({ productsData, fetchData }) {
       });
 
       const data = await response.json();
-      
+      console.log('API Response:', data); // Log the response
+
       if (response.ok) {
-        // Group orders by userEmail instead of userId
-        const bookingsByUser = data.bookings.reduce((acc, booking) => {
-          const userEmail = booking.userEmail || booking.userId; // fallback to userId if email not available
-          if (!acc[userEmail]) {
-            acc[userEmail] = [];
-          }
-          acc[userEmail].push(booking);
-          return acc;
-        }, {});
-        
-        setAllBookings(bookingsByUser);
+        setAllBookings(data.bookings); // Assuming data.bookings is the correct structure
       } else {
         notyf.error(data.message || 'Failed to fetch bookings');
       }
@@ -105,10 +96,16 @@ export default function AdminDashboard({ productsData, fetchData }) {
     }
   };
 
-  const toggleUserBookings = (userId) => {
+  useEffect(() => {
+    if (showBookings) {
+      fetchAllBookings();
+    }
+  }, [showBookings]);
+
+  const toggleUserBookings = (userEmail) => {
     setExpandedUsers(prev => ({
       ...prev,
-      [userId]: !prev[userId]
+      [userEmail]: !prev[userEmail]
     }));
   };
 
@@ -367,6 +364,52 @@ export default function AdminDashboard({ productsData, fetchData }) {
           }
         };
 
+        const confirmBooking = async (bookingId) => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/confirm/${bookingId}`, {
+                    method: 'PATCH', // Assuming you use PATCH to update the booking status
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    notyf.success('Booking confirmed successfully');
+                    fetchAllBookings(); // Refresh the bookings after confirming
+                } else {
+                    notyf.error(data.message || 'Failed to confirm booking');
+                }
+            } catch (error) {
+                console.error('Error confirming booking:', error);
+                notyf.error('An error occurred while confirming the booking');
+            }
+        };
+
+        const completeBooking = async (bookingId) => {
+            try {
+                const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/complete/${bookingId}`, {
+                    method: 'PATCH', // Assuming you use PATCH to update the booking status
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    notyf.success('Booking completed successfully');
+                    fetchAllBookings(); // Refresh the bookings after completing
+                } else {
+                    notyf.error(data.message || 'Failed to complete booking');
+                }
+            } catch (error) {
+                console.error('Error completing booking:', error);
+                notyf.error('An error occurred while completing the booking');
+            }
+        };
+
       return (
         <>
           <Container style={tableStyles.container}>
@@ -410,7 +453,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
                         {userBookings.map((booking) => (
                           <div key={booking._id} className="mb-3">
                             <div className="mb-2">
-                              Booked on {formatDate(booking.bookedOn)}:
+                              Booked on {formatDate(booking.orderedOn)}:
                             </div>
                             <ul style={{ listStyleType: 'circle', paddingLeft: '20px' }}>
                               {booking.productsBooked.map((product) => (
@@ -425,6 +468,29 @@ export default function AdminDashboard({ productsData, fetchData }) {
                             <div style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
                               Total: ₱{booking.totalPrice}
                             </div>
+                            <div>
+                              Status: <strong>{booking.status}</strong>
+                            </div>
+                            
+                            {/* Conditionally render the buttons based on booking status */}
+                            {booking.status === 'Pending' && (
+                                <Button 
+                                    variant="success" 
+                                    onClick={() => confirmBooking(booking._id)} 
+                                    style={{ borderRadius: '0' }}
+                                >
+                                    Confirm Booking
+                                </Button>
+                            )}
+                            {booking.status === 'Confirmed' && (
+                                <Button 
+                                    variant="success" 
+                                    onClick={() => completeBooking(booking._id)} 
+                                    style={{ borderRadius: '0' }}
+                                >
+                                    Complete Booking
+                                </Button>
+                            )}
                           </div>
                         ))}
                       </Card.Body>

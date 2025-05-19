@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
-import { Container, Button } from 'react-bootstrap';
-import { useParams, Link } from 'react-router-dom';
+import { Container, Button, Row, Col } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
 import UserContext from '../context/UserContext';
 import AddToCart from '../components/AddToCart';
 
@@ -56,60 +56,27 @@ export default function ProductView() {
           <h4 className="mb-0" style={{ fontSize: '1.5rem' }}>{product.name}</h4>
         </div>
         <div className="card-body">
-          {/* Mobile and Tablet View Image (shown only on sm and md screens) */}
-          <div className="d-block d-lg-none mb-4" style={{ 
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '100%',
-            height: '200px'
-          }}>
-            <img
-              src={product.imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
-              alt={product.name}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                backgroundColor: 'white'
-              }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg";
-              }}
-            />
-          </div>
+          <Row>
+            {/* Image Column - 1/3 of the column for desktop */}
+            <Col xs={12} md={4} className="d-flex justify-content-center mb-4">
+              <img
+                src={product.imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
+                alt={product.name}
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '300px',
+                  objectFit: 'contain',
+                  backgroundColor: 'white'
+                }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg";
+                }}
+              />
+            </Col>
 
-          {/* Desktop View Layout */}
-          <div className="row">
-            {/* Desktop Image (shown only on lg screens and up) */}
-            <div className="col-lg-4 d-none d-lg-block">
-              <div style={{ 
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '100%',
-                height: '250px'
-              }}>
-                <img
-                  src={product.imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
-                  alt={product.name}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
-                    objectFit: 'contain',
-                    backgroundColor: 'white'
-                  }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg";
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className={`${product.imageUrl ? 'col-lg-8' : 'col-12'}`}>
+            {/* Details Column - 2/3 of the column for desktop */}
+            <Col xs={12} md={8}>
               <p className="card-text">{product.description}</p>
               
               <div className="mt-3">
@@ -120,14 +87,16 @@ export default function ProductView() {
 
                 <div className="d-flex align-items-center mb-3">
                   <label className="me-3">Quantity: </label>
-                  <div className="input-group" style={{ width: '150px' }}>
+                  <div className="d-flex align-items-center" style={{ width: '150px' }}>
                     <Button 
                       onClick={() => handleQuantityChange('decrease')}
                       className="text-white"
                       style={{ 
                         borderRadius: '0',
                         backgroundColor: '#373a3c',
-                        borderColor: '#373a3c'
+                        borderColor: '#373a3c',
+                        marginRight: '0',
+                        width: '40px',
                       }}
                     >
                       -
@@ -137,7 +106,7 @@ export default function ProductView() {
                       className="form-control ps-2" 
                       value={quantity} 
                       readOnly 
-                      style={{ textAlign: 'left', borderRadius: '0' }}
+                      style={{ textAlign: 'center', borderRadius: '0', width: '40px' }}
                     />
                     <Button 
                       onClick={() => handleQuantityChange('increase')}
@@ -145,7 +114,9 @@ export default function ProductView() {
                       style={{ 
                         borderRadius: '0',
                         backgroundColor: '#373a3c',
-                        borderColor: '#373a3c'
+                        borderColor: '#373a3c',
+                        marginLeft: '0',
+                        width: '40px'
                       }}
                     >
                       +
@@ -153,8 +124,8 @@ export default function ProductView() {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            </Col>
+          </Row>
         </div>
         <div 
           className="card-footer" 

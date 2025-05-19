@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Row, Container } from 'react-bootstrap';
+import { Row, Container, Col } from 'react-bootstrap';
 import PreviewProducts from './PreviewProducts';
+import { Link } from 'react-router-dom';
 
 export default function FeaturedProducts() {
   const [previews, setPreviews] = useState([]);
@@ -29,14 +30,53 @@ export default function FeaturedProducts() {
   }, []);
 
   return (
-    <Container>
-      <h2 className="text-center mb-5">Featured Products</h2>
-      <Row className="g-4">
+    <Container fluid style={{ padding: '0 20px', marginTop: '20px', boxSizing: 'border-box' }}>
+      <Row className="align-items-center mb-3">
+        <Col xs={12} md={6} className="text-center text-md-start">
+          <h3 style={{
+            fontFamily: 'Roboto, sans-serif',
+            fontWeight: 900,
+            letterSpacing: '2px',
+            margin: 0,
+            marginLeft: '20px'
+          }}>
+            Featured Products
+          </h3>
+        </Col>
+        <Col xs={12} md={6} className="text-center text-md-end">
+          <Link to="/products" style={{
+            padding: '8px 14px',
+            border: '2px solid transparent',
+            color: '#0e3e8e',
+            textDecoration: 'none',
+            borderRadius: '5px',
+            transition: 'all 0.3s ease',
+            boxShadow: 'none',
+            fontWeight: 'bold',
+            whiteSpace: 'nowrap',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.border = '2px solid #0e3e8e';
+              e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
+              e.currentTarget.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.border = '2px solid transparent';
+              e.currentTarget.style.boxShadow = 'none';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            View More Products &gt;
+          </Link>
+        </Col>
+      </Row>
+      <Row style={{ margin: '0', justifyContent: 'center', marginBottom: '20px', padding: '0' }}>
         {previews.map(product => (
           <PreviewProducts 
             data={product} 
             key={product.key} 
-            breakPoint={4}
+            breakPoint={2}
+            style={{ fontFamily: 'Roboto, sans-serif' }}
           />
         ))}
       </Row>
