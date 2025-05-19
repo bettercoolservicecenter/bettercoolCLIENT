@@ -46,22 +46,22 @@ export default function FeaturedProducts() {
         <Col xs={12} md={6} className="text-center text-md-end">
           <Link to="/products" style={{
             padding: '8px 14px',
-            border: '2px solid transparent',
-            color: '#0e3e8e',
+            border: '1px solid transparent',
+            color: '#0e368c',
             textDecoration: 'none',
             borderRadius: '5px',
             transition: 'all 0.3s ease',
             boxShadow: 'none',
-            fontWeight: 'bold',
+            fontWeight: 'normal',
             whiteSpace: 'nowrap',
           }}
             onMouseEnter={e => {
-              e.currentTarget.style.border = '2px solid #0e3e8e';
+              e.currentTarget.style.border = '1px solid #0e368c';
               e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
               e.currentTarget.style.transform = 'scale(1.05)';
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.border = '2px solid transparent';
+              e.currentTarget.style.border = '1px solid transparent';
               e.currentTarget.style.boxShadow = 'none';
               e.currentTarget.style.transform = 'scale(1)';
             }}

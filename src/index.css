@@ -48,3 +48,21 @@ img {
     flex-direction: row; /* Ensure items are in a row */
   }
 }
+
+.search-suggestions {
+  background-color: white; /* White background for suggestions */
+  width: 80%; /* Match the width of the search bar */
+}
+
+.suggestion-card {
+  border: none; /* Remove card border */
+}
+
+.suggestion-header {
+  color: black; /* Black text color */
+  cursor: pointer; /* Pointer cursor for clickable items */
+}
+
+.suggestion-header:hover {
+  background-color: #f0f0f0; /* Optional: Change background on hover */
+}

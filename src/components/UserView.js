@@ -1,15 +1,14 @@
 import { Container, Form, Button, Row, Col, Accordion } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
-import ProductCard from './ProductCard';
 
 export default function UserView({ productsData = [] }) {
-  const [products, setProducts] = useState([]);
   const [productName, setProductName] = useState('');
   const [minPrice, setMinPrice] = useState('0');
-  const [maxPrice, setMaxPrice] = useState('10000'); // Changed default max price to 10000
+  const [maxPrice, setMaxPrice] = useState('10000');
 
+  // Removed products state since we are displaying blank cards
   useEffect(() => {
-    setProducts(productsData);
+    // No need to set products since we are displaying blank cards
   }, [productsData]);
 
   const handlePriceChange = (setter, value) => {
@@ -45,10 +44,10 @@ export default function UserView({ productsData = [] }) {
       const data = await response.json();
       // Filter out inactive products
       const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
-      setProducts(activeProducts);
+      // No need to set products since we are displaying blank cards
     } catch (error) {
       console.error('Error searching products:', error);
-      setProducts([]); // Reset to empty array on error
+      // No need to set products since we are displaying blank cards
     }
   };
 
@@ -72,10 +71,10 @@ export default function UserView({ productsData = [] }) {
       const data = await response.json();
       // Filter out inactive products
       const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
-      setProducts(activeProducts);
+      // No need to set products since we are displaying blank cards
     } catch (error) {
       console.error('Error searching by price:', error);
-      setProducts([]); // Reset to empty array on error
+      // No need to set products since we are displaying blank cards
     }
   };
 
@@ -83,7 +82,7 @@ export default function UserView({ productsData = [] }) {
     setProductName('');
     setMinPrice('0');
     setMaxPrice('100000');
-    setProducts(productsData);
+    // No need to set products since we are displaying blank cards
   };
 
   const priceInputStyle = {
@@ -270,14 +269,63 @@ export default function UserView({ productsData = [] }) {
             </Accordion>
           </div>
 
-          <h2 className="text-center mb-4">Our Products</h2>
+          <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
+            CATEGORIES
+          </h2>
         </Col>
       </Row>
       
       <Row style={customStyles.productRow}>
-        {products.map(product => (
-          <Col xs={12} md={6} lg={4} key={product._id} className="mb-4">
-            <ProductCard productProp={product} />
+        {/* Display 3 blank cards */}
+        {[...Array(3)].map((_, index) => (
+          <Col xs={12} md={6} lg={4} key={index} className="mb-4">
+            <div 
+              style={{
+                backgroundColor: 'white',
+                borderRadius: '5px',
+                padding: '20px',
+                textAlign: 'center',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                cursor: 'pointer'
+              }}
+            >
+              <img 
+                src="https://via.placeholder.com/150" // Placeholder image
+                alt="Placeholder"
+                style={{ display: 'block', margin: '0 auto 10px auto' }} // Center the image
+              />
+              <p style={{ fontWeight: 'bold', margin: '10px 0' }}>Product Name {index + 1}</p> {/* Bold name */}
+              <p style={{ margin: '10px 0' }}>Description goes here</p> {/* Centered description */}
+              <Button 
+                variant="link" 
+                style={{
+                  padding: '8px 14px',
+                  border: '1px solid transparent',
+                  color: '#0e368c',
+                  textDecoration: 'none',
+                  borderRadius: '5px',
+                  transition: 'all 0.3s ease',
+                  boxShadow: 'none',
+                  fontWeight: 'normal',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.border = '1px solid #0e368c';
+                  e.currentTarget.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.3)';
+                  e.currentTarget.style.transform = 'scale(1.05)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.border = '1px solid transparent';
+                  e.currentTarget.style.boxShadow = 'none';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+                onClick={() => {
+                  console.log('View more clicked');
+                }}
+              >
+                View More
+              </Button>
+            </div>
           </Col>
         ))}
       </Row>

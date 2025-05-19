@@ -100,10 +100,9 @@ function App() {
     <UserProvider value={{ user, setUser, unsetUser }}>
       <Router>
         <AppNavbar cartItemCount={cartItemCount} />
-        {/* 🚫 Remove Container, it's the cause of extra spacing */}
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
+          <Route path="/products" element={<Products cartItemCount={cartItemCount} />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />
