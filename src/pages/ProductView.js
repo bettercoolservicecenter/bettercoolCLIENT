@@ -1,8 +1,19 @@
 import { useState, useEffect, useContext } from 'react';
 import { Container, Button, Row, Col } from 'react-bootstrap';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom'; // <-- Add Link import
 import UserContext from '../context/UserContext';
-import AddToCart from '../components/AddToCart';
+
+// Add this above your ProductView component (or import from a shared file if needed)
+const brands = [
+  'Eurotek', 'Condura', 'Haier', 'Fujidenzo', 'Whirlpool',
+  'Maytag', 'Tecnogas', 'Samsung', 'Exatech', 'Polarstar'
+];
+
+const categories = [
+  'Washing Machine',
+  'Air Conditioner',
+  'Refrigerator'
+];
 
 export default function ProductView() {
   const { productId } = useParams();
@@ -35,38 +46,91 @@ export default function ProductView() {
     return <Container>Loading...</Container>;
   }
 
+  // Find the brand from the product name/title
+  const detectedBrand = brands.find(brand =>
+    product.name && product.name.toLowerCase().includes(brand.toLowerCase())
+  ) || 'Unknown';
+
+  // Add this after detectedBrand
+  const detectedCategory = categories.find(category =>
+    product.name && product.name.toLowerCase().includes(category.toLowerCase())
+  ) || 'N/A';
+
   const renderActionButton = () => {
-    // Allow all users to add to cart, regardless of login status
     return (
-      <AddToCart 
-        productId={productId}
-        quantity={quantity}
-        price={product.price}
-      />
+      <button
+        type="button"
+        className="add-to-cart-btn"
+        style={{
+          marginTop: 12,
+          background: '#0c4798',
+          color: '#fff',
+          border: 'none',
+          minWidth: 140,
+          maxWidth: 160,
+          width: '100%',
+          fontWeight: 600,
+          letterSpacing: '0.5px',
+          borderRadius: 6,
+          boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+          transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+          fontSize: '1rem',
+          padding: '8px 0',
+          fontFamily: "'Roboto', sans-serif",
+          margin: '12px 0 0 0',
+          display: 'block',
+          textAlign: 'center' // Center the text inside the button
+        }}
+        onClick={handleAddToCart}
+      >
+        Add to Cart
+      </button>
     );
   };
 
   return (
-    <Container className="mt-5">
-      <div className="card" style={{ borderRadius: '0' }}>
-        <div 
-          className="card-header text-center text-white py-2" 
-          style={{ backgroundColor: '#373a3c', borderRadius: '0' }}
+    <Container style={{ marginTop: '8rem' }}>
+      {/* Back to Products link */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <Link
+          to="/products"
+          className="back-to-products-link"
+          style={{
+            fontFamily: "'Roboto', sans-serif",
+            color: '#222',
+            textDecoration: 'none',
+            fontWeight: 500,
+            transition: 'color 0.2s'
+          }}
         >
-          <h4 className="mb-0" style={{ fontSize: '1.5rem' }}>{product.name}</h4>
-        </div>
-        <div className="card-body">
+          &larr; Back to Products
+        </Link>
+        <style>
+          {`
+            .back-to-products-link:hover,
+            .back-to-products-link:focus {
+              color: #0c4798 !important;
+              text-decoration: underline;
+            }
+          `}
+        </style>
+      </div>
+      <div className="card" style={{ border: 'none', borderRadius: '0', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+        {/* Remove card-header, move title below image */}
+        <div className="card-body" style={{ paddingTop: 0 }}>
           <Row>
-            {/* Image Column - 1/3 of the column for desktop */}
-            <Col xs={12} md={4} className="d-flex justify-content-center mb-4">
+            {/* Image at the top, full width on mobile, left column on desktop */}
+            <Col xs={12} md={4} className="d-flex flex-column align-items-center mb-4">
               <img
                 src={product.imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
                 alt={product.name}
                 style={{
-                  maxWidth: '100%',
+                  width: '100%',
+                  maxWidth: '300px',
                   maxHeight: '300px',
                   objectFit: 'contain',
-                  backgroundColor: 'white'
+                  backgroundColor: 'white',
+                  borderRadius: 0
                 }}
                 onError={(e) => {
                   e.target.onerror = null;
@@ -77,50 +141,95 @@ export default function ProductView() {
 
             {/* Details Column - 2/3 of the column for desktop */}
             <Col xs={12} md={8}>
-              <p className="card-text">{product.description}</p>
-              
-              <div className="mt-3">
+              {/* Title above description */}
+              <h4
+                className="mb-2"
+                style={{
+                  fontFamily: "'Poppins', 'Roboto', sans-serif",
+                  fontSize: '1.5rem',
+                  textAlign: 'left',
+                  fontWeight: 600,
+                  color: '#222',
+                  letterSpacing: '1px'
+                }}
+              >
+                {product.name}
+              </h4>
+              <p className="card-text" style={{ fontFamily: "'Roboto', sans-serif", color: '#444', fontWeight: 400, fontSize: '1rem' }}>
+                {product.description}
+              </p>
+
+              {/* Show Category and Brand as text below description */}
+              <div className="mb-3" style={{ fontFamily: "'Roboto', sans-serif" }}>
+                <div>
+                  <label className="me-3" style={{ fontWeight: 500 }}>Category:</label>
+                  <span style={{ fontWeight: 500, color: '#0c4798' }}>
+                    {detectedCategory}
+                  </span>
+                </div>
+                <div>
+                  <label className="me-3" style={{ fontWeight: 500 }}>Brand:</label>
+                  <span style={{ fontWeight: 500, color: '#0c4798' }}>
+                    {detectedBrand}
+                  </span>
+                </div>
+              </div>
+
+              {/* Move price and quantity to the bottom */}
+              <div className="mt-5">
                 <div className="d-flex align-items-center mb-3">
-                  <label className="me-3">Price: </label>
-                  <span className="h5 mb-0" style={{ color: '#ff8c00' }}>₱{product.price}</span>
+                  <label className="me-3" style={{ fontFamily: "'Roboto', sans-serif" }}>Price: </label>
+                  <span className="h5 mb-0" style={{ color: '#ff8c00', fontFamily: "'Roboto', sans-serif" }}>₱{product.price}</span>
                 </div>
 
                 <div className="d-flex align-items-center mb-3">
-                  <label className="me-3">Quantity: </label>
+                  <label className="me-3" style={{ fontFamily: "'Roboto', sans-serif" }}>Quantity: </label>
                   <div className="d-flex align-items-center" style={{ width: '150px' }}>
-                    <Button 
+                    <button
+                      type="button"
                       onClick={() => handleQuantityChange('decrease')}
-                      className="text-white"
-                      style={{ 
-                        borderRadius: '0',
-                        backgroundColor: '#373a3c',
-                        borderColor: '#373a3c',
+                      className="product-qty-btn"
+                      style={{
                         marginRight: '0',
                         width: '40px',
+                        height: '40px', // Match the input height
+                        fontFamily: "'Roboto', sans-serif",
+                        borderRadius: '0', // Remove border radius
+                        lineHeight: '1'
                       }}
+                      onMouseUp={e => e.currentTarget.blur()}
                     >
                       -
-                    </Button>
-                    <input 
-                      type="text" 
-                      className="form-control ps-2" 
-                      value={quantity} 
-                      readOnly 
-                      style={{ textAlign: 'center', borderRadius: '0', width: '40px' }}
-                    />
-                    <Button 
-                      onClick={() => handleQuantityChange('increase')}
-                      className="text-white"
-                      style={{ 
+                    </button>
+                    <input
+                      type="text"
+                      className="form-control ps-2"
+                      value={quantity}
+                      readOnly
+                      style={{
+                        textAlign: 'center',
                         borderRadius: '0',
-                        backgroundColor: '#373a3c',
-                        borderColor: '#373a3c',
-                        marginLeft: '0',
-                        width: '40px'
+                        width: '40px',
+                        height: '40px', // Ensure input matches button height
+                        fontFamily: "'Roboto', sans-serif"
                       }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleQuantityChange('increase')}
+                      className="product-qty-btn"
+                      style={{
+                        marginLeft: '0',
+                        width: '40px',
+                        height: '40px', // Match the input height
+                        fontFamily: "'Roboto', sans-serif",
+                        borderRadius: '0', // Remove border radius
+                        lineHeight: '1'
+                      }}
+                      onMouseUp={e => e.currentTarget.blur()}
                     >
                       +
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -134,6 +243,55 @@ export default function ProductView() {
           {renderActionButton()}
         </div>
       </div>
+      <style>
+        {`
+          .back-to-products-link:hover,
+          .back-to-products-link:focus {
+            color: #0c4798 !important;
+            text-decoration: underline;
+          }
+          .product-qty-btn {
+            border: 1px solid #0c4798 !important;
+            color: #0c4798 !important;
+            background: rgba(255,255,255,0.85) !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            border-radius: 6px;
+          }
+          .product-qty-btn:hover, .product-qty-btn:focus {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: 1px solid #0c4798 !important;
+            box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+            transform: scale(1.08);
+          }
+          .add-to-cart-btn {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: none !important;
+            min-width: 140px;
+            max-width: 160px;
+            width: 100%;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            font-size: 1rem;
+            padding: 8px 0;
+            font-family: 'Roboto', sans-serif;
+            margin: 0 auto;
+            display: block;
+          }
+          .add-to-cart-btn:hover, .add-to-cart-btn:focus {
+            background: #08306b !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(69,210,250,0.18);
+            transform: scale(1.06);
+          }
+        `}
+      </style>
     </Container>
   );
 }

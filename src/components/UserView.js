@@ -1,7 +1,7 @@
 import { Container, Form, Button, Row, Col, Accordion } from 'react-bootstrap';
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import ProductCard from './ProductCard'; // Make sure to import ProductCard
+import ProductCard from './ProductCard';
 
 export default function UserView({ productsData = [] }) {
   const location = useLocation();
@@ -13,6 +13,8 @@ export default function UserView({ productsData = [] }) {
   const [accordionHeight, setAccordionHeight] = useState(0);
   const [accordionTop, setAccordionTop] = useState(0);
   const [pendingNavbarScroll, setPendingNavbarScroll] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [accordionActiveKey, setAccordionActiveKey] = useState(null); // Collapsed by default
   const accordionRef = useRef(null);
   const allProductsRef = useRef(null); // Add this ref
 
@@ -68,8 +70,10 @@ export default function UserView({ productsData = [] }) {
     setTimeout(() => {
       if (allProductsRef.current) {
         const navbarHeight = 65;
-        const extraOffset = 50; // Increase this for more spacing
-        const top = allProductsRef.current.getBoundingClientRect().top + window.scrollY - navbarHeight - extraOffset;
+        // Add more spacing below the sticky accordion
+        const extraSpacing = 48; // Increase this value for more space (was 24)
+        const offset = isSticky ? (navbarHeight + accordionHeight + extraSpacing) : (navbarHeight + extraSpacing);
+        const top = allProductsRef.current.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top, behavior: 'smooth' });
       }
     }, 200); // Slightly longer delay for reliability
@@ -98,33 +102,33 @@ export default function UserView({ productsData = [] }) {
     }
   };
 
-  const handleSearchByPrice = async () => {
+  const handleSearchByPrice = () => {
+    filterProducts(productName, selectedBrand, minPrice, maxPrice);
+  };
+
+  const filterProducts = async (category, brand, min, max) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/search-by-price/`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/filter`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ 
-          minPrice: parseFloat(minPrice) || 0,
-          maxPrice: parseFloat(maxPrice) || Number.MAX_SAFE_INTEGER
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: category || undefined,
+          brand: brand || undefined,
+          minPrice: min ? parseFloat(min) : undefined,
+          maxPrice: max ? parseFloat(max) : undefined
         })
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data = await response.json();
-      const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
-      setProducts(activeProducts);
+      setProducts(Array.isArray(data) ? data.filter(product => product.isActive) : []);
     } catch (error) {
-      console.error('Error searching by price:', error);
+      console.error('Error filtering products:', error);
     }
   };
 
   const handleClear = () => {
     setProductName('');
+    setSelectedBrand('');
     setMinPrice('0');
     setMaxPrice('100000');
     setProducts(productsData);
@@ -212,6 +216,43 @@ export default function UserView({ productsData = [] }) {
       setPendingNavbarScroll(false);
     }
   }, [products, pendingNavbarScroll]);
+
+  // Brand list
+  const brands = [
+    'Eurotek', 'Condura', 'Haier', 'Fujidenzo', 'Whirlpool',
+    'Maytag', 'Tecnogas', 'Samsung', 'Exatech', 'Polarstar'
+  ];
+
+  // Brand search handler
+  const handleBrandSearch = async (brand) => {
+    setSelectedBrand(brand);
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/search-by-name/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: brand })
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const data = await response.json();
+      const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
+      setProducts(activeProducts);
+    } catch (error) {
+      console.error('Error searching products by brand:', error);
+    }
+  };
+
+  // Collapse accordion when it becomes sticky
+  useEffect(() => {
+    if (isSticky) {
+      setAccordionActiveKey(null); // Collapse
+    }
+  }, [isSticky]);
+
+  // Filter products on parameter change
+  useEffect(() => {
+    filterProducts(productName, selectedBrand);
+    // eslint-disable-next-line
+  }, [productName, selectedBrand]);
 
   return (
     <Container style={customStyles.container}>
@@ -304,17 +345,21 @@ export default function UserView({ productsData = [] }) {
         </style>
         {/* Card 1: Air Conditioner */}
         <Col xs={12} md={6} lg={4} className="mb-4">
-          <div className="premium-card"
+          <div
+            className="premium-card"
             style={{
               padding: '20px 16px 16px 16px',
               textAlign: 'center',
               cursor: 'pointer',
-              minHeight: 320, // Reduced from 380
+              minHeight: 320,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between'
             }}
-            onClick={() => handleSearchByName('Air Conditioner')}
+            onClick={() => {
+              handleSearchByName('Air Conditioner');
+              scrollToAllProducts();
+            }}
           >
             <img 
               src="https://i.ibb.co/R4ZsKHqs/can-you-generate-an-image-of-a-air-conditioner-in-a-room-with-sky-blue-ambient-it-should-feel-luxur.jpg"
@@ -330,7 +375,9 @@ export default function UserView({ productsData = [] }) {
               onClick={e => {
                 e.stopPropagation();
                 handleSearchByName('Air Conditioner');
+                scrollToAllProducts();
               }}
+              onMouseUp={e => e.currentTarget.blur()} // <-- Add this line
             >
               <span className="premium-accent">View More</span>
             </Button>
@@ -339,17 +386,21 @@ export default function UserView({ productsData = [] }) {
 
         {/* Card 2: Refrigerator */}
         <Col xs={12} md={6} lg={4} className="mb-4">
-          <div className="premium-card"
+          <div
+            className="premium-card"
             style={{
               padding: '20px 16px 16px 16px',
               textAlign: 'center',
               cursor: 'pointer',
-              minHeight: 320, // Reduced from 380
+              minHeight: 320,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between'
             }}
-            onClick={() => handleSearchByName('Refrigerator')}
+            onClick={() => {
+              handleSearchByName('Refrigerator');
+              scrollToAllProducts();
+            }}
           >
             <img 
               src="https://i.ibb.co/082ZRtw/can-you-generate-an-image-of-a-refrigerator-in-a-room-with-sky-blue-ambient-it-should-feel-luxuriou.jpg"
@@ -365,7 +416,9 @@ export default function UserView({ productsData = [] }) {
               onClick={e => {
                 e.stopPropagation();
                 handleSearchByName('Refrigerator');
+                scrollToAllProducts();
               }}
+              onMouseUp={e => e.currentTarget.blur()}
             >
               <span className="premium-accent">View More</span>
             </Button>
@@ -374,17 +427,21 @@ export default function UserView({ productsData = [] }) {
 
         {/* Card 3: Washing Machine */}
         <Col xs={12} md={6} lg={4} className="mb-4">
-          <div className="premium-card"
+          <div
+            className="premium-card"
             style={{
               padding: '20px 16px 16px 16px',
               textAlign: 'center',
               cursor: 'pointer',
-              minHeight: 320, // Reduced from 380
+              minHeight: 320,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between'
             }}
-            onClick={() => handleSearchByName('Washing Machine')}
+            onClick={() => {
+              handleSearchByName('Washing Machine');
+              scrollToAllProducts();
+            }}
           >
             <img 
               src="https://i.ibb.co/YBXyMtQk/can-you-generate-an-image-of-a-washing-machine-in-a-room-with-sky-blue-ambient-it-should-feel-luxur.jpg"
@@ -400,7 +457,9 @@ export default function UserView({ productsData = [] }) {
               onClick={e => {
                 e.stopPropagation();
                 handleSearchByName('Washing Machine');
+                scrollToAllProducts();
               }}
+              onMouseUp={e => e.currentTarget.blur()}
             >
               <span className="premium-accent">View More</span>
             </Button>
@@ -446,6 +505,8 @@ export default function UserView({ productsData = [] }) {
         >
           <style>{customAccordionStyles}</style>
           <Accordion
+            activeKey={accordionActiveKey}
+            onSelect={setAccordionActiveKey}
             className={isSticky ? '' : 'mb-4'}
             style={{
               margin: isSticky ? 0 : '2rem 0 1.5rem 0',
@@ -461,36 +522,60 @@ export default function UserView({ productsData = [] }) {
               </Accordion.Header>
               <Accordion.Body>
                 <Form className="compact-form">
-                  {/* Product Name field */}
-                  <Form.Group className="mb-2">
-                    <Form.Label className="mb-1 small">Product Name:</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={productName}
-                      onChange={(e) => setProductName(e.target.value)}
-                      size="sm"
-                    />
+                  {/* Categories Radio Buttons */}
+                  <Form.Group className="mb-3">
+                    <Form.Label className="mb-1 small">Categories:</Form.Label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                      {['Air Conditioner', 'Refrigerator', 'Washing Machine'].map((category) => (
+                        <Form.Check
+                          key={category}
+                          inline
+                          type="radio"
+                          label={category}
+                          name="categoryRadios"
+                          id={`category-radio-${category}`}
+                          checked={productName === category}
+                          onChange={() => setProductName(category)} // for category
+                          style={{ marginRight: '8px', marginBottom: '4px' }}
+                        />
+                      ))}
+                    </div>
+                  </Form.Group>
+
+                  {/* Brands Radio Buttons */}
+                  <Form.Group className="mb-3">
+                    <Form.Label className="mb-1 small">Brands:</Form.Label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                      {brands.map((brand) => (
+                        <Form.Check
+                          key={brand}
+                          inline
+                          type="radio"
+                          label={brand}
+                          name="brandRadios"
+                          id={`brand-radio-${brand}`}
+                          checked={selectedBrand === brand}
+                          onChange={() => setSelectedBrand(brand)}  // for brand
+                          style={{ marginRight: '8px', marginBottom: '4px' }}
+                        />
+                      ))}
+                    </div>
                   </Form.Group>
                   
                   {/* Search by Name button on a single line */}
-                  <div className="mb-3">
-                    <Button 
-                      variant="primary" 
-                      size="sm"
-                      onClick={handleSearchByName}
-                      style={searchButtonStyle}
-                    >
-                      Search by Name
-                    </Button>
-                  </div>
+                  
 
                   {/* Price Range section - both fields side by side on the left */}
-                  <div className="d-flex mb-3" style={{ maxWidth: '400px' }}>
+                  <div className="d-flex mb-3 justify-content-center" style={{ maxWidth: '400px', margin: '0 auto' }}>
                     <div className="me-3">
                       <Form.Label className="mb-1 small">Min Price:</Form.Label>
                       <div className="d-flex">
-                        <Button 
-                          style={{...priceButtonStyle, height: '31px'}}
+                        <Button
+                          className="price-adjust-btn"
+                          style={{
+                            ...priceButtonStyle,
+                            height: '31px'
+                          }}
                           onClick={() => decrementPrice(setMinPrice, minPrice)}
                           size="sm"
                         >
@@ -500,11 +585,16 @@ export default function UserView({ productsData = [] }) {
                           type="text"
                           value={minPrice}
                           onChange={(e) => handlePriceChange(setMinPrice, e.target.value)}
-                          style={{...priceInputStyle, height: '31px'}}
+                          style={{ ...priceInputStyle, height: '31px', width: '72px', textAlign: 'center' }}
                           size="sm"
+                          placeholder="0"
                         />
-                        <Button 
-                          style={{...priceButtonStyle, height: '31px'}}
+                        <Button
+                          className="price-adjust-btn"
+                          style={{
+                            ...priceButtonStyle,
+                            height: '31px'
+                          }}
                           onClick={() => incrementPrice(setMinPrice, minPrice)}
                           size="sm"
                         >
@@ -512,12 +602,15 @@ export default function UserView({ productsData = [] }) {
                         </Button>
                       </div>
                     </div>
-                    
                     <div>
                       <Form.Label className="mb-1 small">Max Price:</Form.Label>
                       <div className="d-flex">
-                        <Button 
-                          style={{...priceButtonStyle, height: '31px'}}
+                        <Button
+                          className="price-adjust-btn"
+                          style={{
+                            ...priceButtonStyle,
+                            height: '31px'
+                          }}
                           onClick={() => decrementPrice(setMaxPrice, maxPrice)}
                           size="sm"
                         >
@@ -527,11 +620,16 @@ export default function UserView({ productsData = [] }) {
                           type="text"
                           value={maxPrice}
                           onChange={(e) => handlePriceChange(setMaxPrice, e.target.value)}
-                          style={{...priceInputStyle, height: '31px'}}
+                          style={{ ...priceInputStyle, height: '31px', width: '72px', textAlign: 'center' }}
                           size="sm"
+                          placeholder="0"
                         />
-                        <Button 
-                          style={{...priceButtonStyle, height: '31px'}}
+                        <Button
+                          className="price-adjust-btn"
+                          style={{
+                            ...priceButtonStyle,
+                            height: '31px'
+                          }}
                           onClick={() => incrementPrice(setMaxPrice, maxPrice)}
                           size="sm"
                         >
@@ -541,26 +639,69 @@ export default function UserView({ productsData = [] }) {
                     </div>
                   </div>
                   
-                  {/* Search by Price and Clear buttons */}
-                  <div className="d-flex mt-2">
-                    <Button 
-                      variant="primary" 
-                      size="sm"
-                      onClick={handleSearchByPrice}
-                      style={searchButtonStyle}
-                      className="me-2"
-                    >
-                      Search by Price
-                    </Button>
-                    <Button 
-                      variant="danger" 
+                  {/* Filter by Price and Clear buttons - single line, centered */}
+                  <div className="d-flex mt-2 justify-content-center" style={{ maxWidth: 360, margin: '0 auto' }}>
+                    <Button
+                      variant="link"
                       size="sm"
                       onClick={handleClear}
-                      style={searchButtonStyle}
+                      style={{
+                        ...searchButtonStyle,
+                        border: '1px solid #0c4798',
+                        color: '#0c4798',
+                        background: 'rgba(255,255,255,0.85)',
+                        minWidth: 90,
+                        maxWidth: 110,
+                        width: '100%',
+                        fontWeight: 600,
+                        letterSpacing: '0.5px',
+                        borderRadius: 6,
+                        boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
+                        transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                        marginRight: 12
+                      }}
+                      className="premium-viewmore-btn"
                     >
-                      Clear
+                      <span className="premium-accent">Clear</span>
+                    </Button>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleSearchByPrice}
+                      style={{
+                        ...searchButtonStyle,
+                        background: '#0c4798',
+                        color: '#fff',
+                        border: 'none',
+                        minWidth: 140,
+                        maxWidth: 160,
+                        width: '100%',
+                        fontWeight: 600,
+                        letterSpacing: '0.5px',
+                        borderRadius: 6,
+                        boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                        transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+                      }}
+                      className="premium-viewmore-btn"
+                    >
+                      <span className="premium-accent" style={{ color: '#fff' }}>Filter by Price</span>
                     </Button>
                   </div>
+                  <style>
+                  {`
+                  .premium-viewmore-btn:hover, .premium-viewmore-btn:focus {
+                    background: #0c4798 !important;
+                    color: #fff !important;
+                    border: none !important;
+                    box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+                    transform: scale(1.06);
+                  }
+                  .premium-viewmore-btn:hover .premium-accent,
+                  .premium-viewmore-btn:focus .premium-accent {
+                    color: #fff !important;
+                  }
+                  `}
+                  </style>
                 </Form>
               </Accordion.Body>
             </Accordion.Item>
@@ -583,6 +724,26 @@ export default function UserView({ productsData = [] }) {
           </Col>
         ))}
       </Row>
+
+      <style>
+        {`
+          .price-adjust-btn {
+            border: 1px solid #0c4798 !important;
+            color: #0c4798 !important;
+            background: rgba(255,255,255,0.85) !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+          }
+          .price-adjust-btn:hover, .price-adjust-btn:focus {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: 1px solid #0c4798 !important;
+            box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+            transform: scale(1.08);
+          }
+        `}
+      </style>
     </Container>
   );
 }

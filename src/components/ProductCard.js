@@ -1,8 +1,10 @@
 import React from 'react';
 import { Card } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function ProductCard({ productProp }) {
+  const navigate = useNavigate(); // <-- Move useNavigate here, outside any condition
+
   if (!productProp) {
     return null;
   }
@@ -20,6 +22,7 @@ export default function ProductCard({ productProp }) {
             border-radius: 0;
             transition: box-shadow 0.35s cubic-bezier(.4,2,.6,1), transform 0.35s cubic-bezier(.4,2,.6,1);
             background: #fff;
+            cursor: pointer;
           }
           .allproducts-card:hover {
             box-shadow:
@@ -72,20 +75,28 @@ export default function ProductCard({ productProp }) {
           }
         `}
       </style>
-      <Card 
-        id={_id} 
+      <Card
+        id={_id}
         className="mb-3 h-100 d-flex flex-column mx-3 allproducts-card"
         style={{ borderRadius: '0', border: 'none' }}
+        onClick={() => navigate(`/products/${_id}`)}
+        tabIndex={0}
+        role="button"
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            navigate(`/products/${_id}`);
+          }
+        }}
       >
-        <div style={{ 
-          display: 'flex', 
+        <div style={{
+          display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           margin: '10px 0',
           width: '100%',
           height: '200px'
         }}>
-          <img 
+          <img
             src={imageUrl || "https://dn721803.ca.archive.org/0/items/placeholder-image//placeholder-image.jpg"}
             alt={name}
             style={{
@@ -100,20 +111,21 @@ export default function ProductCard({ productProp }) {
             }}
           />
         </div>
-        <Card.Body className="flex-grow-1 text-center">    
+        <Card.Body className="flex-grow-1 text-center">
           <Card.Title className="allproducts-title">
             {name}
           </Card.Title>
           <Card.Text style={{ fontSize: '0.97rem', color: '#444' }}>{description}</Card.Text>
         </Card.Body>
         <span className="allproducts-price">₱{price}</span>
-        <Card.Footer 
+        <Card.Footer
           className="bg-light border-top text-center"
           style={{ borderRadius: '0', background: 'transparent', border: 'none' }}
         >
-          <Link 
-            className="allproducts-details-btn" 
+          <Link
+            className="allproducts-details-btn"
             to={`/products/${_id}`}
+            onClick={e => e.stopPropagation()} // Prevent card click when clicking Details
           >
             Details
           </Link>

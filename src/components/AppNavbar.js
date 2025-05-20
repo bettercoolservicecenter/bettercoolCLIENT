@@ -163,7 +163,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
               style={{ height: '2rem', width: 'auto'}} // Same height and margin for spacing
             />
           </Navbar.Brand>
-          
+          <Navbar.Toggle ref={navbarToggleRef} aria-controls="basic-navbar-nav" /> {/* <-- Add this line */}
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="me-auto">
               {user && user.isAdmin ? (
@@ -175,7 +175,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
 
             {/* Search Bar */}
             <form onSubmit={(e) => { e.preventDefault(); onSearch(searchQuery); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-              <div style={{ position: 'relative', width: '80%' }}> {/* Wrap input and icon in a relative container */}
+              <div style={{ position: 'relative', width: '81%' }}> {/* Wrap input and icon in a relative container */}
                 <input
                   type="text"
                   name="search"
