@@ -142,3 +142,23 @@ h2 {
     color: #222; /* Dark text color */
     font-weight: 600;
 }
+
+.clear-service-btn {
+  background: #fff !important; /* Default background */
+  color: #0c4798 !important; /* Default text color */
+  border: 1px solid #0c4798 !important; /* Border color */
+  font-weight: 600;
+  font-family: 'Roboto', sans-serif;
+  border-radius: 6px;
+  padding: 8px 16px;
+  transition: all 0.3s cubic-bezier(.4,2,.6,1);
+  text-decoration: none !important;
+}
+
+.clear-service-btn:hover, .clear-service-btn:focus {
+  background: #0c4798 !important; /* Dark blue background on hover */
+  color: #fff !important; /* White text on hover */
+  border: 1px solid #0c4798 !important; /* Keep the border color */
+  box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+  transform: scale(1.08);
+}
