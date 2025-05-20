@@ -8,6 +8,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
   const { user, setUser } = useContext(UserContext);
   const [suggestions, setSuggestions] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [navbarOpen, setNavbarOpen] = useState(false);
   const navbarToggleRef = useRef(null); // Define the navbarToggleRef
   const suggestionsRef = useRef(null); // Ref for suggestions container
 
@@ -147,6 +148,8 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
         variant="light"
         className="ps-0 navbar-shadow"
         expand="lg"
+        onToggle={setNavbarOpen}
+        expanded={navbarOpen}
       >
         <Container fluid>
           <Navbar.Brand as={NavLink} to="/" onClick={closeNavbar} style={{ display: 'flex', alignItems: 'center', marginLeft: '1.5rem' }}>
@@ -316,10 +319,12 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
               ) : (
                 null
               )}
-              <Nav.Link as={NavLink} to="/cart" style={{ display: 'flex', alignItems: 'center', marginRight: '10px' }}>
+              <Nav.Link as={NavLink} to="/cart" style={{ display: 'flex', alignItems: 'center', marginRight: '10px', position: 'relative' }}>
                 <FaShoppingCart className="cart-icon" style={cartIconStyle} />
                 {cartItemCount > 0 && (
-                  <span style={itemCountStyle}>{cartItemCount}</span>
+                  (window.innerWidth >= 992 || navbarOpen) && (
+                    <span className="cart-item-count">{cartItemCount}</span>
+                  )
                 )}
               </Nav.Link>
             </Nav>

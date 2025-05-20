@@ -79,3 +79,36 @@ img {
 .suggestion-header:hover {
   background-color: #f0f0f0; /* Optional: Change background on hover */
 }
+
+.cart-item-count {
+  position: absolute;
+  top: 0rem;
+  right: 0.6rem;
+  background: #11b0d2;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-width: 20px;
+  min-height: 20px;
+  text-align: center;
+  z-index: 2;
+  line-height: 1.2;
+  transition: all 0.2s;
+}
+
+@media (max-width: 991.98px) {
+  .cart-item-count {
+    position: absolute !important;
+    display: inline-block !important;
+    margin-left: 0.4rem !important;
+    top: 0rem !important;
+    right: 0rem !important;
+    font-size: 0.9rem !important;
+    min-width: 1.3rem !important;
+    min-height: 1.3rem !important;
+    vertical-align: middle;
+    background: #11b0d2;
+  }
+}

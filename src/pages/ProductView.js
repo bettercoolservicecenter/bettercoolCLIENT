@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { Container, Button, Row, Col } from 'react-bootstrap';
 import { useParams, Link } from 'react-router-dom'; // <-- Add Link import
 import UserContext from '../context/UserContext';
+import AddToCart from '../components/AddToCart'; // <-- Add this import
 
 // Add this above your ProductView component (or import from a shared file if needed)
 const brands = [
@@ -38,8 +39,15 @@ export default function ProductView() {
     }
   };
 
-  const handleAddToCart = () => {
-    console.log('Adding to cart:', { product, quantity });
+  const renderActionButton = () => {
+    // Allow all users to add to cart, regardless of login status
+    return (
+      <AddToCart 
+        productId={productId}
+        quantity={quantity}
+        price={product.price}
+      />
+    );
   };
 
   if (!product) {
@@ -55,38 +63,6 @@ export default function ProductView() {
   const detectedCategory = categories.find(category =>
     product.name && product.name.toLowerCase().includes(category.toLowerCase())
   ) || 'N/A';
-
-  const renderActionButton = () => {
-    return (
-      <button
-        type="button"
-        className="add-to-cart-btn"
-        style={{
-          marginTop: 12,
-          background: '#0c4798',
-          color: '#fff',
-          border: 'none',
-          minWidth: 140,
-          maxWidth: 160,
-          width: '100%',
-          fontWeight: 600,
-          letterSpacing: '0.5px',
-          borderRadius: 6,
-          boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
-          transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
-          fontSize: '1rem',
-          padding: '8px 0',
-          fontFamily: "'Roboto', sans-serif",
-          margin: '12px 0 0 0',
-          display: 'block',
-          textAlign: 'center' // Center the text inside the button
-        }}
-        onClick={handleAddToCart}
-      >
-        Add to Cart
-      </button>
-    );
-  };
 
   return (
     <Container style={{ marginTop: '8rem' }}>
@@ -290,6 +266,9 @@ export default function ProductView() {
             box-shadow: 0 8px 24px rgba(69,210,250,0.18);
             transform: scale(1.06);
           }
+
+          /* Add this to your CSS or inside a <style> tag in AppNavbar.js */
+          
         `}
       </style>
     </Container>
