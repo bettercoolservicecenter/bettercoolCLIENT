@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, ListGroup, Collapse, Button } from 'react-bootstrap';
+import { Container, Card, Button } from 'react-bootstrap';
 import { Link, useParams } from 'react-router-dom';
 import { Notyf } from 'notyf';
 
-export default function Bookings() {
+const Bookings = () => {
   const { email } = useParams(); // Get email from URL parameters
   const [bookings, setBookings] = useState([]);
   const [products, setProducts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedBookings, setExpandedBookings] = useState({});
   const notyf = new Notyf();
 
   useEffect(() => {
@@ -17,12 +16,7 @@ export default function Bookings() {
 
   const fetchBookings = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${email}`, {
-        headers: {
-          // No Authorization header for unauthenticated access
-        }
-      });
-
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${email}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -31,10 +25,6 @@ export default function Bookings() {
       } else {
         notyf.error(data.message || 'Failed to fetch bookings');
       }
-
-      console.log("Booking data received:", data);
-      console.log("Has pending or confirmed:", data.hasPendingOrConfirmed);
-      console.log("Bookings length:", data.bookings.length);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       notyf.error('An error occurred while fetching bookings');
@@ -52,15 +42,15 @@ export default function Bookings() {
         });
       });
 
-      console.log('Product IDs to fetch:', Array.from(productIds)); // Debugging line
-
       const productDetails = {};
       await Promise.all(
         Array.from(productIds).map(async (productId) => {
           const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/${productId}`);
           const data = await response.json();
-          console.log(`Fetched product details for ${productId}:`, data); // Debugging line
-          productDetails[productId] = data;
+          productDetails[productId] = {
+            name: data.name,
+            price: data.price
+          };
         })
       );
       setProducts(productDetails);
@@ -73,42 +63,34 @@ export default function Bookings() {
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
-        return 'Invalid Date'; // Handle invalid date
+      return 'Invalid Date'; // Handle invalid date
     }
     return date.toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric'
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
     });
-  };
-
-  const toggleBookingDetails = (bookingId) => {
-    setExpandedBookings(prev => ({
-      ...prev,
-      [bookingId]: !prev[bookingId]
-    }));
   };
 
   const cancelBooking = async (bookingId) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/cancel/${bookingId}`, {
-            method: 'PATCH', // Assuming you use PATCH to update the booking status
-            headers: {
-                'Content-Type': 'application/json',
-                // No Authorization header for unauthenticated access
-            }
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            notyf.success('Booking canceled successfully');
-            fetchBookings(); // Refresh the bookings after canceling
-        } else {
-            notyf.error(data.message || 'Failed to cancel booking');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/cancel/${bookingId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
         }
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        notyf.success('Booking canceled successfully');
+        fetchBookings(); // Refresh the bookings after canceling
+      } else {
+        notyf.error(data.message || 'Failed to cancel booking');
+      }
     } catch (error) {
-        console.error('Error canceling booking:', error);
-        notyf.error('An error occurred while canceling the booking');
+      console.error('Error canceling booking:', error);
+      notyf.error('An error occurred while canceling the booking');
     }
   };
 
@@ -127,89 +109,116 @@ export default function Bookings() {
 
   if (!filteredBookings || filteredBookings.length === 0) {
     return (
-      <Container className="mt-5 text-center">
+      <Container className="mt-5 pt-5 text-center">
         <p className="h4 mb-4">No bookings made yet! <Link to="/products">Start booking</Link>.</p>
       </Container>
     );
   }
 
   return (
-    <Container className="mt-5">
-      <h4 className="text-center" style={{ color: 'black', fontSize: '1.5rem' }}>Booking History</h4>
+    <Container className="mt-5" style={{ fontFamily: "'Roboto', sans-serif" }}>
+      <h4 className="text-center" style={{ color: '#222', fontSize: '1.5rem', fontFamily: "'Poppins', 'Roboto', sans-serif", fontWeight: 600, letterSpacing: '1px', marginTop: '8rem' }}>Booking History</h4>
       {filteredBookings.map((booking, index) => (
-        <Card key={booking._id} className="mb-4" style={{ borderRadius: 0 }}>
-          <Card.Header 
-            className="text-white" 
-            style={{ 
-              backgroundColor: '#373a3c', 
-              cursor: 'pointer', 
-              borderRadius: 0 
+        <Card key={booking._id} className="mb-4" style={{ borderRadius: 0, border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+          <Card.Header
+            style={{
+              backgroundColor: '#fff',
+              color: '#222',
+              borderRadius: 0,
+              border: 'none',
+              fontFamily: "'Roboto', sans-serif",
+              fontWeight: 600,
+              fontSize: '1.1rem'
             }}
-            onClick={() => toggleBookingDetails(booking._id)}
           >
-            Booking #{index + 1} - {formatDate(booking.orderedOn)} 
-            <Button 
-              variant="outline-light"
-              size="sm"
-              style={{ marginLeft: '10px', borderRadius: '5px' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleBookingDetails(booking._id);
-              }}
-            >
-              Details
-            </Button>
+            Booking #{index + 1} - {formatDate(booking.orderedOn)}
           </Card.Header>
-          <Card.Body>
-            <div className="mb-2" style={{ color: '#666' }}><strong>Items:</strong></div>
-            <ul style={{ listStyleType: 'circle', paddingLeft: '20px', color: '#666' }}>
-              {booking.productsBooked.map((product) => (
-                <li key={product._id}>
-                  <Link 
-                    to={`/products/${product.productId}`}
-                    style={{ 
-                      color: '#0d6efd',
-                      textDecoration: 'underline',
-                      marginBottom: '8px',
-                      display: 'inline-block',
-                      borderRadius: 0
-                    }}
-                  >
-                    {products[product.productId]?.name || 'Loading...'}
-                  </Link>
-                  <span style={{ color: '#666' }}> - Quantity: {product.quantity}</span>
-                  
-                  <Collapse in={expandedBookings[booking._id]}>
-                    <div className="mt-2 mb-3 ps-3">
-                      <div style={{ color: '#666' }}>
-                        Price: ₱{products[product.productId]?.price || '...'}<br/>
-                        Description: {products[product.productId]?.description || 'Loading...'}
+          <Card.Body style={{ fontFamily: "'Roboto', sans-serif" }}>
+            <div style={{ color: '#666' }}>
+              <strong>Items:</strong>
+              <ul style={{ listStyleType: 'circle', paddingLeft: '20px', color: '#666' }}>
+                {booking.productsBooked.map((product) => {
+                  const productPrice = products[product.productId]?.price || 0;
+                  const subtotal = productPrice * product.quantity;
+
+                  return (
+                    <li key={product._id}>
+                      <Link
+                        to={`/products/${product.productId}`}
+                        style={{
+                          color: '#0d6efd',
+                          textDecoration: 'underline',
+                          marginBottom: '8px',
+                          display: 'inline-block',
+                          borderRadius: 0,
+                          fontWeight: 500,
+                          fontFamily: "'Roboto', sans-serif"
+                        }}
+                      >
+                        {products[product.productId]?.name || 'Loading...'}
+                      </Link>
+                      <div style={{ color: '#666', marginTop: '4px' }}>
+                        <span> - Quantity: {product.quantity}</span>
+                        <span style={{ marginLeft: '10px' }}> - Price: ₱{productPrice}</span>
+                        <div style={{ marginTop: '4px' }}>
+                          <strong>Subtotal:</strong> ₱{subtotal.toFixed(2)}
+                        </div>
                       </div>
-                    </div>
-                  </Collapse>
-                </li>
-              ))}
-            </ul>
-            <div style={{ marginTop: '15px', color: '#ff6b6b' }}>
-              <strong>Total:</strong> ₱{booking.totalPrice}
-            </div>
-            <div style={{ marginTop: '5px', color: '#666' }}>
+                    </li>
+                  );
+                })}
+              </ul>
+              <strong>Service Type:</strong> {booking.serviceType || 'N/A'}<br />
+              <strong>Size:</strong> {booking.size || 'N/A'}<br />
+              <strong>Service Total:</strong> ₱{booking.serviceTotal || '0.00'}<br />
+              <strong style={{ color: '#666' }}>Total Price:</strong> <span style={{ color: 'orange' }}>₱{booking.totalPrice}</span><br />
               <strong>Status:</strong> {booking.status || 'Pending'}
             </div>
             <div className="mt-3">
               {booking.status !== 'Canceled' && booking.status !== 'Completed' && (
                 <>
-                  <Button 
-                    variant="danger" 
-                    onClick={() => cancelBooking(booking._id)} 
-                    style={{ borderRadius: '0' }}
+                  <Button
+                    variant="link"
+                    className="clear-cart-btn"
+                    onClick={() => cancelBooking(booking._id)}
+                    style={{
+                      borderRadius: 6,
+                      background: '#fff',
+                      color: '#0c4798',
+                      border: '1px solid #0c4798',
+                      fontWeight: 600,
+                      fontFamily: "'Roboto', sans-serif",
+                      padding: '8px 16px',
+                      fontSize: '1rem',
+                      transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+                    }}
                   >
                     Cancel Booking
                   </Button>
                   <p style={{ fontSize: '0.9rem', color: '#666' }}>
                     You can call us or walk-in at our store to confirm the booking.
                   </p>
-                  <a href={`tel:+639389831877`} className="btn btn-primary btn-sm">
+                  <a
+                    href={`tel:+639389831877`}
+                    className="add-to-cart-btn"
+                    style={{
+                      borderRadius: 6,
+                      minWidth: 120,
+                      fontWeight: 600,
+                      letterSpacing: '0.5px',
+                      fontSize: '1rem',
+                      padding: '8px 16px',
+                      fontFamily: 'Roboto, sans-serif',
+                      background: '#0c4798',
+                      color: '#fff',
+                      border: 'none',
+                      transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                      display: 'inline-block',
+                      textAlign: 'center',
+                      textDecoration: 'none',
+                      marginTop: 8
+                    }}
+                  >
                     Call Now
                   </a>
                 </>
@@ -218,6 +227,71 @@ export default function Bookings() {
           </Card.Body>
         </Card>
       ))}
+      <style>
+        {`
+          .clear-cart-btn {
+            background: #fff !important;
+            color: #0c4798 !important;
+            border: 1px solid #0c4798 !important;
+            font-weight: 600;
+            font-family: 'Roboto', sans-serif;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            text-decoration: none !important;
+          }
+          .clear-cart-btn:hover, .clear-cart-btn:focus {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: 1px solid #0c4798 !important;
+            box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+            transform: scale(1.08);
+            text-decoration: none !important;
+          }
+          .add-to-cart-btn {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: none !important;
+            min-width: 120px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            font-size: 1rem;
+            padding: 8px 16px;
+            font-family: 'Roboto', sans-serif;
+            display: inline-block;
+            text-align: center;
+            text-decoration: none !important;
+          }
+          .add-to-cart-btn:hover, .add-to-cart-btn:focus {
+            background: #08306b !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(69,210,250,0.18);
+            transform: scale(1.06);
+            text-decoration: none !important;
+          }
+          .card {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+          }
+          .card-header {
+            background-color: #fff !important;
+            border-radius: 0 !important;
+            border: none !important;
+            color: #222 !important;
+            font-family: 'Roboto', sans-serif !important;
+          }
+          .card-body {
+            font-family: 'Roboto', sans-serif !important;
+          }
+        `}
+      </style>
     </Container>
   );
-}
+};
+
+export default Bookings;

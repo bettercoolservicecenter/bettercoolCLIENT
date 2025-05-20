@@ -17,6 +17,7 @@ export default function UserView({ productsData = [] }) {
   const [accordionActiveKey, setAccordionActiveKey] = useState(null); // Collapsed by default
   const accordionRef = useRef(null);
   const allProductsRef = useRef(null); // Add this ref
+  const [selectedHorsepower, setSelectedHorsepower] = useState(''); // New state for horsepower
 
   useEffect(() => {
     setProducts(productsData);
@@ -115,7 +116,8 @@ export default function UserView({ productsData = [] }) {
           category: category || undefined,
           brand: brand || undefined,
           minPrice: min ? parseFloat(min) : undefined,
-          maxPrice: max ? parseFloat(max) : undefined
+          maxPrice: max ? parseFloat(max) : undefined,
+          horsepower: selectedHorsepower || undefined
         })
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -131,6 +133,7 @@ export default function UserView({ productsData = [] }) {
     setSelectedBrand('');
     setMinPrice('0');
     setMaxPrice('100000');
+    setSelectedHorsepower(''); // Clear horsepower
     setProducts(productsData);
   };
 
@@ -535,12 +538,40 @@ export default function UserView({ productsData = [] }) {
                           name="categoryRadios"
                           id={`category-radio-${category}`}
                           checked={productName === category}
-                          onChange={() => setProductName(category)} // for category
+                          onChange={() => {
+                            setProductName(category);
+                            setSelectedHorsepower(''); // Reset horsepower when category changes
+                          }}
                           style={{ marginRight: '8px', marginBottom: '4px' }}
                         />
                       ))}
                     </div>
                   </Form.Group>
+
+                  {/* Horsepower Radio Buttons - Only show for Air Conditioner */}
+                  {productName === 'Air Conditioner' && (
+                    <Form.Group className="mb-3">
+                      <Form.Label className="mb-1 small">Horsepower:</Form.Label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                        {['1.0hp', '1.5hp', '2.0hp', '2.5hp'].map((hp) => (
+                          <Form.Check
+                            key={hp}
+                            inline
+                            type="radio"
+                            label={hp}
+                            name="horsepowerRadios"
+                            id={`horsepower-radio-${hp}`}
+                            checked={selectedHorsepower === hp}
+                            onChange={() => {
+                              setSelectedHorsepower(hp);
+                              handleSearchByName(hp); // Trigger search by horsepower
+                            }}
+                            style={{ marginRight: '8px', marginBottom: '4px' }}
+                          />
+                        ))}
+                      </div>
+                    </Form.Group>
+                  )}
 
                   {/* Brands Radio Buttons */}
                   <Form.Group className="mb-3">
@@ -555,16 +586,16 @@ export default function UserView({ productsData = [] }) {
                           name="brandRadios"
                           id={`brand-radio-${brand}`}
                           checked={selectedBrand === brand}
-                          onChange={() => setSelectedBrand(brand)}  // for brand
+                          onChange={() => {
+                            setSelectedBrand(brand);
+                            handleSearchByName(brand); // Trigger search by brand
+                          }}
                           style={{ marginRight: '8px', marginBottom: '4px' }}
                         />
                       ))}
                     </div>
                   </Form.Group>
                   
-                  {/* Search by Name button on a single line */}
-                  
-
                   {/* Price Range section - both fields side by side on the left */}
                   <div className="d-flex mb-3 justify-content-center" style={{ maxWidth: '400px', margin: '0 auto' }}>
                     <div className="me-3">

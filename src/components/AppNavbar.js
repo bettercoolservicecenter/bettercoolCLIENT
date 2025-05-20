@@ -168,13 +168,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
           </Navbar.Brand>
           <Navbar.Toggle ref={navbarToggleRef} aria-controls="basic-navbar-nav" /> {/* <-- Add this line */}
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="me-auto">
-              {user && user.isAdmin ? (
-                <Nav.Link as={NavLink} to="/products" style={linkStyle} onClick={closeNavbar}>
-                  {window.innerWidth < 768 ? 'Admin' : 'Admin Dashboard'}
-                </Nav.Link>
-              ) : null}
-            </Nav>
+            
 
             {/* Search Bar */}
             <form onSubmit={(e) => { e.preventDefault(); onSearch(searchQuery); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
@@ -286,16 +280,24 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 <Link 
                   to="/products"
                   state={{ searchCategory: 'Washing Machine' }}
-                  style={{ color: 'black', cursor: 'pointer', textDecoration: 'none' }}
+                  style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}
                 >
                   Washing Machine
                 </Link>
+                <Link 
+                  to="/services"
+                  style={{ color: 'black', cursor: 'pointer', textDecoration: 'none' }}
+                  onMouseEnter={e => e.target.style.color = 'blue'}
+                  onMouseLeave={e => e.target.style.color = 'black'}
+                >
+                  Book a Service
+                </Link>
               </div>
             </form>
 
-            <Nav style={{ display: 'flex', alignItems: 'center' }}>
+            <Nav style={{ display: 'flex', alignItems: 'center', marginRight: '10px' }}>
               {user && user.id !== null ? (
                 <>
                   {!user.isAdmin && (
@@ -304,17 +306,24 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                       <Nav.Link as={NavLink} to="/profile" style={linkStyle} onClick={closeNavbar}>Profile</Nav.Link>
                     </>
                   )}
-                  <Nav.Link 
-                    as={NavLink} 
-                    to="/logout" 
-                    onClick={(e) => {
-                      closeNavbar();
-                      handleLogout();
-                    }} 
-                    style={linkStyle}
-                  >
-                    {window.innerWidth < 768 ? 'Out' : 'Log Out'}
-                  </Nav.Link>
+                  <div style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}> {/* Prevent wrapping */}
+                    {user.isAdmin && (
+                      <Nav.Link as={NavLink} to="/products" style={linkStyle} onClick={closeNavbar}>
+                        {window.innerWidth < 768 ? 'Admin' : 'Admin Dashboard'}
+                      </Nav.Link>
+                    )}
+                    <Nav.Link 
+                      as={NavLink} 
+                      to="/logout" 
+                      onClick={(e) => {
+                        closeNavbar();
+                        handleLogout();
+                      }} 
+                      style={linkStyle}
+                    >
+                      {window.innerWidth < 768 ? 'Out' : 'Log Out'}
+                    </Nav.Link>
+                  </div>
                 </>
               ) : (
                 null

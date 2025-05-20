@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Form, Container, Card } from 'react-bootstrap';
+import { Button, Form, Container, Card } from 'react-bootstrap';
 import { Navigate, Link } from 'react-router-dom';
 import UserContext from '../context/UserContext';
 import { Notyf } from 'notyf';
@@ -126,103 +126,149 @@ const Register = () => {
   }
 
   return (
-    <Container className="mt-5">
-      <h1 className="text-center mb-4">Register</h1>
+    <Container className="mt-5 py-5" style={{ fontFamily: "'Roboto', sans-serif" }}>
+      <h1 className="text-center mb-4" style={{ color: '#2C3E50', fontFamily: "'Poppins', 'Roboto', sans-serif", fontWeight: 600, letterSpacing: '1px' }}>Register</h1>
       <div className="col-md-6 offset-md-3">
-        <Card className="p-4" style={{ borderRadius: 0 }}>
+        <Card className="p-4 border-0" style={{ borderRadius: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
           <Form onSubmit={registerUser}>
             <Form.Group className="mb-3">
-              <Form.Label>First Name:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>First Name:</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter your First Name"
                 value={firstName}
                 onChange={handleNameChange(setFirstName)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Last Name:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Last Name:</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter your Last Name"
                 value={lastName}
                 onChange={handleNameChange(setLastName)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Email:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Email:</Form.Label>
               <Form.Control
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Mobile Number:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Mobile Number:</Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter your 11 digit mobile number"
                 value={mobileNo}
                 onChange={e => setMobileNo(e.target.value)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Password:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Password:</Form.Label>
               <Form.Control
                 type="password"
                 placeholder="Enter your password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
             <Form.Group className="mb-3">
-              <Form.Label>Verify Password:</Form.Label>
+              <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Verify Password:</Form.Label>
               <Form.Control
                 type="password"
                 placeholder="Verify your password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
+                style={{ fontFamily: "'Roboto', sans-serif" }}
               />
             </Form.Group>
 
-            <div className="bg-light mx-n4 p-3" style={{ 
-              marginLeft: '-1.5rem', 
-              marginRight: '-1.5rem', 
+            <div className="bg-light mx-n4 p-3" style={{
+              marginLeft: '-1.5rem',
+              marginRight: '-1.5rem',
               marginBottom: '-1.5rem',
               borderTop: '1px solid #dee2e6',
               borderBottomLeftRadius: 0,
               borderBottomRightRadius: 0
             }}>
-              <button 
-                type="submit" 
-                className={`btn ${isActive ? 'btn-primary' : 'btn-danger'}`}
+              <Button
+                type="submit"
+                className="add-to-cart-btn"
                 disabled={!isActive}
                 style={{
-                  textAlign: 'left',
-                  paddingLeft: '15px',
-                  paddingRight: '15px',
-                  width: 'auto',
-                  display: 'inline-block',
-                  borderRadius: 0
+                  width: '100%',
+                  borderRadius: 6,
+                  background: '#0c4798',
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontFamily: "'Roboto', sans-serif",
+                  letterSpacing: '0.5px',
+                  fontSize: '1rem',
+                  border: 'none',
+                  boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                  transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                  textAlign: 'center',
+                  textDecoration: 'none'
                 }}
               >
-                {isActive ? 'Register' : 'Please enter your registration details'}
-              </button>
+                Register
+              </Button>
             </div>
-
-            
           </Form>
         </Card>
-        <div className="text-center">
-          Already have an account? <Link to="/login">Click here</Link> to log in.
+        <div className="text-center mt-3" style={{ fontFamily: "'Roboto', sans-serif" }}>
+          Already have an account? <Link to="/login" style={{ color: '#0c4798', fontWeight: 600 }}>Click here</Link> to log in.
         </div>
       </div>
+      <style>
+        {`
+          .add-to-cart-btn {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: none !important;
+            min-width: 140px;
+            max-width: 160px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            font-size: 1rem;
+            padding: 8px 0;
+            font-family: 'Roboto', sans-serif;
+            margin: 0 auto;
+            display: block;
+            text-align: center;
+            text-decoration: none !important;
+          }
+          .add-to-cart-btn:hover, .add-to-cart-btn:focus {
+            background: #08306b !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(69,210,250,0.18);
+            transform: scale(1.06);
+            text-decoration: none !important;
+          }
+          .card {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+          }
+        `}
+      </style>
     </Container>
   );
 };

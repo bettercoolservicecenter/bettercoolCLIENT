@@ -13,6 +13,7 @@ import Logout from './pages/Logout';
 import Error from './pages/Error';
 import Profile from './pages/Profile';
 import ProductView from './pages/ProductView';
+import ServicePage from './pages/ServicePage';
 
 import { UserProvider } from './context/UserContext';
 import 'notyf/notyf.min.css';
@@ -111,6 +112,7 @@ function App() {
           <Route path="/cart" element={<Cart setCartItemCount={updateCartItemCount} />} />
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/bookings/:email" element={<Bookings />} />
+          <Route path="/services" element={<ServicePage />} />
           <Route path="*" element={<Error />} />
         </Routes>
       </Router>

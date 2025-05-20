@@ -89,29 +89,31 @@ const Login = () => {
     user.id !== null ?
     <Navigate to="/products" />
     :
-    <Container className="mt-5">
-      <h1 className="text-center mb-4" style={{ color: '#2C3E50' }}>Log In</h1>
+    <Container className="mt-5 pt-5" style={{ fontFamily: "'Roboto', sans-serif" }}>
+      <h1 className="text-center mb-4" style={{ color: '#2C3E50', fontFamily: "'Poppins', 'Roboto', sans-serif", fontWeight: 600, letterSpacing: '1px' }}>Log In</h1>
       <div className="col-md-6 offset-md-3">
-        <Card className="border">
+        <Card className="border-0" style={{ borderRadius: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
           <Card.Body>
             <Form onSubmit={authenticate}>
               <Form.Group className="mb-3" controlId="formEmail">
-                <Form.Label>Email:</Form.Label>
+                <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Email:</Form.Label>
                 <Form.Control
                   type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  style={{ fontFamily: "'Roboto', sans-serif" }}
                 />
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="formPassword">
-                <Form.Label>Password:</Form.Label>
+                <Form.Label style={{ fontFamily: "'Roboto', sans-serif" }}>Password:</Form.Label>
                 <Form.Control
                   type="password"
                   placeholder="Enter your password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
+                  style={{ fontFamily: "'Roboto', sans-serif" }}
                 />
               </Form.Group>
 
@@ -124,12 +126,24 @@ const Login = () => {
                 borderBottomRightRadius: 'calc(0.375rem - 1px)'
               }}>
                 <Button 
-                  variant="primary" 
-                  type="submit" 
+                  variant="link"
+                  type="submit"
                   disabled={isButtonDisabled}
-                  style={{ 
-                    width: 'auto',
-                    borderRadius: '0'  // This removes the border radius
+                  className="add-to-cart-btn"
+                  style={{
+                    width: '100%',
+                    borderRadius: 6,
+                    background: '#0c4798',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontFamily: "'Roboto', sans-serif",
+                    letterSpacing: '0.5px',
+                    fontSize: '1rem',
+                    border: 'none',
+                    boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                    transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                    textAlign: 'center',
+                    textDecoration: 'none'
                   }}
                 >
                   Submit
@@ -138,10 +152,45 @@ const Login = () => {
             </Form>
           </Card.Body>
         </Card>
-        <div className="text-center mt-3">
-          Don't have an account yet? <Link to="/register">Click here</Link> to register.
+        <div className="text-center mt-3" style={{ fontFamily: "'Roboto', sans-serif" }}>
+          Don't have an account yet? <Link to="/register" style={{ color: '#0c4798', fontWeight: 600 }}>Click here</Link> to register.
         </div>
       </div>
+      <style>
+        {`
+          .add-to-cart-btn {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: none !important;
+            min-width: 140px;
+            max-width: 160px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            font-size: 1rem;
+            padding: 8px 0;
+            font-family: 'Roboto', sans-serif;
+            margin: 0 auto;
+            display: block;
+            text-align: center;
+            text-decoration: none !important;
+          }
+          .add-to-cart-btn:hover, .add-to-cart-btn:focus {
+            background: #08306b !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(69,210,250,0.18);
+            transform: scale(1.06);
+            text-decoration: none !important;
+          }
+          .card {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+          }
+        `}
+      </style>
     </Container>
   );
 };

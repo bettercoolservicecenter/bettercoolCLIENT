@@ -200,7 +200,8 @@ export default function AdminDashboard({ productsData, fetchData }) {
          container: {
            padding: '20px',
            maxWidth: '1200px',
-           margin: '0 auto'
+           margin: '0 auto',
+           fontFamily: "'Roboto', sans-serif"
          },
          header: {
            textAlign: 'center',
@@ -209,8 +210,10 @@ export default function AdminDashboard({ productsData, fetchData }) {
          title: {
            fontSize: '28px',
            fontWeight: '600',
-           color: '#333',
-           marginBottom: '20px'
+           color: '#222',
+           marginBottom: '20px',
+           fontFamily: "'Poppins', 'Roboto', sans-serif",
+           letterSpacing: '1px'
          },
          buttonGroup: {
            marginBottom: '30px',
@@ -218,24 +221,47 @@ export default function AdminDashboard({ productsData, fetchData }) {
            justifyContent: 'center'
          },
          headerButton: {
-           borderRadius: 0,
+           borderRadius: 6,
+           fontFamily: "'Roboto', sans-serif",
+           fontWeight: 600,
+           background: '#0c4798',
+           color: '#fff',
+           border: 'none',
+           marginRight: 10,
+           minWidth: 140,
+           maxWidth: 160,
+           letterSpacing: '0.5px',
+           fontSize: '1rem',
+           boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+           transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
          },
          table: {
            backgroundColor: '#fff',
            borderRadius: '8px',
-           boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+           boxShadow: '0 2px 4px rgba(0,0,0,0.07)',
+           fontFamily: "'Roboto', sans-serif"
          },
          tableHeader: {
            backgroundColor: '#373a3c',
            color: '#fff',
-           fontWeight: '600'
+           fontWeight: '600',
+           fontFamily: "'Roboto', sans-serif"
          },
          actionButton: {
            width: '100px',
-           borderRadius: 0,
+           borderRadius: 6,
            display: 'block',
            marginBottom: '5px',
-           textAlign: 'center'
+           textAlign: 'center',
+           fontFamily: "'Roboto', sans-serif",
+           fontWeight: 600,
+           background: '#0c4798',
+           color: '#fff',
+           border: 'none',
+           letterSpacing: '0.5px',
+           fontSize: '1rem',
+           boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+           transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
          },
          actionButtonContainer: {
            display: 'flex',
@@ -245,11 +271,13 @@ export default function AdminDashboard({ productsData, fetchData }) {
          },
          price: {
            fontWeight: '600',
-           color: '#2c3e50'
+           color: '#ff8c00',
+           fontFamily: "'Roboto', sans-serif"
          },
          modal: {
            content: {
-             padding: '20px'
+             padding: '20px',
+             fontFamily: "'Roboto', sans-serif"
            },
            footer: {
              borderTop: '1px solid #dee2e6',
@@ -412,7 +440,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
 
       return (
         <>
-          <Container style={tableStyles.container}>
+          <Container style={tableStyles.container} className='pt-5 mt-5'>
             <div style={tableStyles.header}>
               <h1 style={tableStyles.title}>Admin Dashboard</h1>
               <div style={tableStyles.buttonGroup}>
@@ -420,6 +448,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
                   variant="primary" 
                   onClick={handleShow}
                   style={tableStyles.headerButton}
+                  onMouseUp={e => e.currentTarget.blur()}
                 >
                   Add New Product
                 </Button>
@@ -427,6 +456,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
                   variant={showBookings ? "danger" : "success"}
                   style={tableStyles.headerButton}
                   onClick={toggleView}
+                  onMouseUp={e => e.currentTarget.blur()}
                 >
                   {showBookings ? 'Show Product Details' : 'Show User Bookings'}
                 </Button>
@@ -503,13 +533,12 @@ export default function AdminDashboard({ productsData, fetchData }) {
                 <Table bordered responsive style={tableStyles.table}>
                   <thead>
                     <tr>
-                      <th style={{width: '25%', backgroundColor: '#373a3c', color: '#fff'}}>Name</th>
-                      <th className="d-none d-lg-table-cell" style={{width: '45%', backgroundColor: '#373a3c', color: '#fff'}}>Description</th>
-                      {/* Remove the View header for tablet view */}
-                      <th className="d-lg-none d-sm-none" style={{width: '15%', textAlign: 'center', backgroundColor: '#373a3c', color: '#fff'}}>View</th>
-                      <th style={{width: '25%', textAlign: 'center', backgroundColor: '#373a3c', color: '#fff'}}>Price</th>
-                      <th className="d-none d-sm-table-cell" style={{width: '25%', textAlign: 'center', backgroundColor: '#373a3c', color: '#fff'}}>Availability</th>
-                      <th className="d-none d-sm-table-cell" style={{width: '25%', textAlign: 'center', backgroundColor: '#373a3c', color: '#fff'}}>Actions</th>
+                      <th style={{width: '25%', color: '#222', backgroundColor: 'transparent'}}>Name</th>
+                      <th className="d-none d-lg-table-cell" style={{width: '45%', color: '#222', backgroundColor: 'transparent'}}>Description</th>
+                      <th className="d-lg-none d-sm-none" style={{width: '15%', textAlign: 'center', color: '#222', backgroundColor: 'transparent'}}>View</th>
+                      <th style={{width: '25%', textAlign: 'center', color: '#222', backgroundColor: 'transparent'}}>Price</th>
+                      <th className="d-none d-sm-table-cell" style={{width: '25%', textAlign: 'center', color: '#222', backgroundColor: 'transparent'}}>Availability</th>
+                      <th className="d-none d-sm-table-cell" style={{width: '25%', textAlign: 'center', color: '#222', backgroundColor: 'transparent'}}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -615,9 +644,32 @@ export default function AdminDashboard({ productsData, fetchData }) {
                               Update
                             </Button>
                             <Button 
-                              variant={product.isActive ? "danger" : "success"}
+                              variant={product.isActive ? "outline-primary" : "success"}
                               size="sm"
-                              style={tableStyles.actionButton}
+                              className={product.isActive ? "disable-btn" : ""}
+                              style={{
+                                borderRadius: 6,
+                                display: 'block',
+                                marginBottom: '5px',
+                                textAlign: 'center',
+                                fontFamily: "'Roboto', sans-serif",
+                                fontWeight: 600,
+                                background: product.isActive ? '#fff' : '#0c4798',
+                                color: product.isActive ? '#0c4798' : '#fff',
+                                border: product.isActive ? '1.5px solid #0c4798' : 'none',
+                                letterSpacing: '0.5px',
+                                fontSize: '1rem',
+                                boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                                minWidth: 100,
+                                padding: '4px 16px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'scale(1.05)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
                               onClick={() => handleArchive(product._id, product.isActive)}
                             >
                               {product.isActive ? 'Disable' : 'Enable'}
@@ -635,9 +687,32 @@ export default function AdminDashboard({ productsData, fetchData }) {
                               Update
                             </Button>
                             <Button 
-                              style={{ borderRadius: '0' }}
-                              variant={product.isActive ? "danger" : "success"}
+                              variant={product.isActive ? "outline-primary" : "success"}
                               size="sm"
+                              className={product.isActive ? "disable-btn" : ""}
+                              style={{
+                                borderRadius: 6,
+                                display: 'block',
+                                marginBottom: '5px',
+                                textAlign: 'center',
+                                fontFamily: "'Roboto', sans-serif",
+                                fontWeight: 600,
+                                background: product.isActive ? '#fff' : '#0c4798',
+                                color: product.isActive ? '#0c4798' : '#fff',
+                                border: product.isActive ? '1.5px solid #0c4798' : 'none',
+                                letterSpacing: '0.5px',
+                                fontSize: '1rem',
+                                boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                                minWidth: 100,
+                                padding: '4px 16px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'scale(1.05)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'scale(1)';
+                              }}
                               onClick={() => handleArchive(product._id, product.isActive)}
                             >
                               {product.isActive ? 'Disable' : 'Enable'}
@@ -795,6 +870,75 @@ export default function AdminDashboard({ productsData, fetchData }) {
               </Modal.Footer>
             </Form>
           </Modal>
+
+          {/* Add this style block at the end of your component's return (before the closing fragment or Container) */}
+          <>
+            <style>
+              {`
+                .btn, .btn-primary, .btn-success, .btn-danger, .btn-dark {
+                  font-family: 'Roboto', sans-serif !important;
+                  font-weight: 600 !important;
+                  border-radius: 6px !important;
+                  letter-spacing: 0.5px !important;
+                  font-size: 1rem !important;
+                  transition: all 0.3s cubic-bezier(.4,2,.6,1) !important;
+                }
+                .btn-primary, .btn-success, .btn-danger, .btn-dark {
+                  background: #0c4798 !important;
+                  color: #fff !important;
+                  border: none !important;
+                  box-shadow: 0 6px 18px rgba(69,210,250,0.13) !important;
+                }
+                .btn-primary:hover, .btn-success:hover, .btn-danger:hover, .btn-dark:hover,
+                .btn-primary:focus, .btn-success:focus, .btn-danger:focus, .btn-dark:focus {
+                  background: #08306b !important;
+                  color: #fff !important;
+                  box-shadow: 0 8px 24px rgba(69,210,250,0.18) !important;
+                  transform: scale(1.06);
+                  text-decoration: none !important;
+                }
+                .disable-btn {
+                  background: #fff !important;
+                  color: #0c4798 !important;
+                  border: 1.5px solid #0c4798 !important;
+                  font-weight: 600;
+                  font-family: 'Roboto', sans-serif;
+                  border-radius: 6px;
+                  padding: 4px 16px !important;
+                  transition: all 0.3s cubic-bezier(.4,2,.6,1);
+                  text-decoration: none !important;
+                }
+                .disable-btn:hover, .disable-btn:focus {
+                  background: #0c4798 !important;
+                  color: #fff !important;
+                  border: 1.5px solid #0c4798 !important;
+                  box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+                  transform: scale(1.08);
+                  text-decoration: none !important;
+                }
+                .card, .modal-content {
+                  border: none !important;
+                  border-radius: 0 !important;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.07) !important;
+                  font-family: 'Roboto', sans-serif !important;
+                }
+                .card-header {
+                  background-color: #fff !important;
+                  border-radius: 0 !important;
+                  border: none !important;
+                  color: #222 !important;
+                  font-family: 'Roboto', sans-serif !important;
+                }
+                .card-body {
+                  font-family: 'Roboto', sans-serif !important;
+                }
+                table, th, td {
+                  font-family: 'Roboto', sans-serif !important;
+                  color: #222 !important;
+                }
+              `}
+            </style>
+          </>
         </>
       );
     }

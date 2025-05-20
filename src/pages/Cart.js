@@ -67,10 +67,17 @@ export default function Cart({ setCartItemCount }) {
   const notyf = new Notyf();
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [selectedService, setSelectedService] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  const [totalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     fetchCart();
-    fetchCartItemCount(); // Fetch cart item count when the component mounts
+    fetchCartItemCount();
   }, []);
 
   useEffect(() => {
@@ -81,14 +88,10 @@ export default function Cart({ setCartItemCount }) {
 
   const fetchCartItemCount = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/cart-item-count`, {
-        headers: {
-          // Include any necessary headers, such as authorization if needed
-        }
-      });
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/cart-item-count`);
       const data = await response.json();
       if (response.ok) {
-        setCartItemCount(data.totalQuantity); // Update the cart item count
+        setCartItemCount(data.totalQuantity);
       }
     } catch (error) {
       console.error('Error fetching cart item count:', error);
@@ -102,12 +105,11 @@ export default function Cart({ setCartItemCount }) {
 
       if (response.ok) {
         setCart(data.cart);
-        // Calculate total item count based on quantities
         let totalItemCount = 0;
         data.cart.cartItems.forEach(item => {
-          totalItemCount += item.quantity; // Sum the quantities
+          totalItemCount += item.quantity;
         });
-        setCartItemCount(totalItemCount); // Update the cart item count
+        setCartItemCount(totalItemCount);
       } else {
         notyf.error(data.message || 'Failed to fetch cart');
       }
@@ -138,21 +140,13 @@ export default function Cart({ setCartItemCount }) {
 
   const handleQuantityChange = async (productId, currentQuantity, action) => {
     let newQuantity = action === 'increase' ? currentQuantity + 1 : currentQuantity - 1;
-    
-    // Don't allow quantity less than 1
     if (newQuantity < 1) return;
 
     try {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cart/update-cart-quantity`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          // Removed Authorization header for unauthenticated access
-        },
-        body: JSON.stringify({
-          productId,
-          newQuantity
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, newQuantity })
       });
 
       const data = await response.json();
@@ -163,10 +157,9 @@ export default function Cart({ setCartItemCount }) {
           cartItems: data.updatedCart.cartItems,
           totalPrice: data.updatedCart.totalPrice
         }));
-        // Update the cart item count based on the new cart state
         let totalItemCount = 0;
         data.updatedCart.cartItems.forEach(item => {
-          totalItemCount += item.quantity; // Sum the quantities
+          totalItemCount += item.quantity;
         });
         setCartItemCount(totalItemCount);
         notyf.success('Quantity updated successfully');
@@ -193,10 +186,9 @@ export default function Cart({ setCartItemCount }) {
           cartItems: data.updatedCart.cartItems,
           totalPrice: data.updatedCart.totalPrice
         }));
-        // Update the cart item count based on the new cart state
         let totalItemCount = 0;
         data.updatedCart.cartItems.forEach(item => {
-          totalItemCount += item.quantity; // Sum the quantities
+          totalItemCount += item.quantity;
         });
         setCartItemCount(totalItemCount);
         notyf.success('Item removed from cart successfully');
@@ -219,7 +211,7 @@ export default function Cart({ setCartItemCount }) {
 
       if (response.ok) {
         setCart(data.cart);
-        setCartItemCount(0); // Reset the count here
+        setCartItemCount(0);
         notyf.success('Cart cleared successfully');
       } else {
         notyf.error(data.message || 'Failed to clear cart');
@@ -228,6 +220,89 @@ export default function Cart({ setCartItemCount }) {
       console.error('Error clearing cart:', error);
       notyf.error('An error occurred while clearing the cart');
     }
+  };
+
+  const handleBookNow = async (guestInfo) => {
+    const bookingData = {
+      email: guestInfo.email,
+      name: guestInfo.name,
+      phoneNumber: guestInfo.phoneNumber,
+      totalPrice: cart.totalPrice,
+      productsBooked: cart.cartItems.map(item => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        subtotal: item.subtotal,
+      })),
+      serviceType: selectedService,
+      size: selectedSize,
+      serviceTotal: totalPrice
+    };
+
+    try {
+      // Check for existing bookings
+      const existingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${bookingData.email}`);
+      const existingData = await existingResponse.json();
+
+      if (existingResponse.ok) {
+        // Check if there are existing bookings
+        if (existingData.bookings.length > 0) {
+          const existingBooking = existingData.bookings[0]; // Assuming we are checking the first booking
+
+          // Allow booking if the existing booking is for a product or if productsBooked is empty
+          if (existingBooking.serviceType && existingBooking.size) {
+            // Check if productsBooked is empty
+            if (existingBooking.productsBooked.length === 0) {
+              // Proceed with updating the existing booking
+              const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/update/${existingBooking._id}`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(bookingData),
+              });
+
+              if (response.ok) {
+                notyf.success('Product booked successfully!');
+                setCart(null);
+                navigate(`/bookings/${bookingData.email}`);
+              } else {
+                const errorData = await response.json();
+                notyf.error(errorData.message || 'Failed to book product');
+              }
+              return; // Prevent further execution
+            } else {
+              notyf.error('You cannot book a product while you have a pending service.');
+              return; // Prevent further execution
+            }
+          }
+        }
+
+        // If no existing bookings, create a new booking (if needed)
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${bookingData.email}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(bookingData),
+        });
+
+        if (response.ok) {
+          notyf.success('Product booked successfully!');
+          setCart(null);
+          navigate(`/bookings/${bookingData.email}`);
+        } else {
+          const errorData = await response.json();
+          notyf.error(errorData.message || 'Failed to book product');
+        }
+      } else {
+        notyf.error('Failed to fetch existing bookings');
+      }
+    } catch (error) {
+      console.error('Error during booking:', error);
+      notyf.error('An error occurred while processing your booking');
+    }
+
+    setShowModal(false);
   };
 
   if (isLoading) {
@@ -240,8 +315,8 @@ export default function Cart({ setCartItemCount }) {
 
   if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
     return (
-      <Container className="mt-5 text-center">
-        <p className="h4 mb-4">
+      <Container className="mt-5 text-center pt-5">
+        <p className="h4 mb-4" style={{ fontFamily: "'Roboto', sans-serif", color: '#222', fontWeight: 500 }}>
           Your cart is empty! <Link 
             to="/products" 
             style={{ 
@@ -257,156 +332,92 @@ export default function Cart({ setCartItemCount }) {
     );
   }
 
-  const handleBookNow = async (guestInfo) => {
-    try {
-        console.log("Fetching bookings for email:", guestInfo.email); // Log the email being fetched
-
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${guestInfo.email}`, {
-            headers: {
-                // No Authorization header for unauthenticated access
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error("Error fetching bookings:", errorData); // Log the error data
-            notyf.error(errorData.message || 'Failed to fetch bookings');
-            return; // Prevent further execution
-        }
-
-        const data = await response.json();
-        console.log("Booking data received:", data); // Log the entire response data
-
-        // Check if there are any pending or confirmed bookings
-        const hasPendingOrConfirmed = data.hasPendingOrConfirmed;
-
-        // Allow booking if there are no bookings at all
-        if (!data.bookings.length || !hasPendingOrConfirmed) {
-            // Prepare booking request body
-            const bookingBody = {
-                name: guestInfo.name,
-                phoneNumber: guestInfo.phoneNumber,
-                email: guestInfo.email,
-                totalPrice: cart.totalPrice,
-                productsBooked: cart.cartItems.map(item => ({
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    subtotal: item.subtotal,
-                })),
-            };
-
-            console.log("Booking request body:", bookingBody); // Log the request body
-
-            const bookingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${guestInfo.email}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(bookingBody),
-            });
-
-            const bookingData = await bookingResponse.json();
-
-            if (bookingResponse.ok) {
-                notyf.success('Booking placed successfully');
-                await handleClearCart();
-                setCart(null);
-                navigate(`/bookings/${guestInfo.email}`);
-            } else {
-                notyf.error(bookingData.message || 'Failed to place booking');
-            }
-        } else {
-            notyf.error('You cannot book again while you have a pending or confirmed booking.');
-            navigate(`/bookings/${guestInfo.email}`); // Redirect to bookings page
-            return; // Prevent further execution
-        }
-    } catch (error) {
-        console.error('Error during booking:', error);
-        notyf.error('An error occurred while processing your booking');
-    }
-};
-
   return (
-    <Container className="mt-5">
-      <div className="card" style={{ borderRadius: '0' }}>
-        <div 
-          className="card-header text-center text-white py-2" 
-          style={{ backgroundColor: '#373a3c', borderRadius: '0' }}
-        >
-          <h4 className="mb-0" style={{ fontSize: '1.5rem' }}>Your Shopping Cart</h4>
+    <Container style={{ marginTop: '8rem', fontFamily: "'Roboto', sans-serif" }}>
+      <div className="card" style={{ border: 'none', borderRadius: '0', boxShadow: '0 2px 8px rgba(0,0,0,0.07)' }}>
+        <div className="card-header text-center py-2" style={{ backgroundColor: '#fff', borderRadius: '0', border: 'none' }}>
+          <h4 className="mb-0" style={{ fontSize: '1.5rem', color: '#222', fontFamily: "'Poppins', 'Roboto', sans-serif", fontWeight: 600, letterSpacing: '1px' }}>
+            Your Shopping Cart
+          </h4>
         </div>
         <div className="card-body p-0">
           {/* Desktop view */}
           <div className="d-none d-md-block">
-            <Table responsive bordered className="mb-0">
-              <thead style={{ backgroundColor: '#373a3c', color: 'white' }}>
+            <Table responsive bordered={false} className="mb-0" style={{ fontFamily: "'Roboto', sans-serif" }}>
+              <thead style={{ backgroundColor: '#f8f9fa', color: '#222', fontWeight: 600 }}>
                 <tr>
-                  <th>Name</th>
-                  <th>Price</th>
-                  <th>Quantity</th>
-                  <th>Subtotal</th>
-                  <th>Actions</th>
+                  <th style={{ border: 'none' }}>Name</th>
+                  <th style={{ border: 'none' }}>Price</th>
+                  <th style={{ border: 'none' }}>Quantity</th>
+                  <th style={{ border: 'none' }}>Subtotal</th>
+                  <th style={{ border: 'none' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {cart.cartItems.map((item) => {
                   const product = products[item.productId] || {};
                   return (
-                    <tr key={item._id}>
-                      <td>
-                        <Link to={`/products/${item.productId}`} className="text-primary">
+                    <tr key={item._id} style={{ border: 'none' }}>
+                      <td style={{ border: 'none', verticalAlign: 'middle' }}>
+                        <Link to={`/products/${item.productId}`} style={{ color: '#0c4798', textDecoration: 'none', fontWeight: 500 }}>
                           {product.name || 'Loading...'}
                         </Link>
                       </td>
-                      <td>₱{product.price || '...'}</td>
-                      <td>
+                      <td style={{ border: 'none', verticalAlign: 'middle' }}>₱{product.price || '...'}</td>
+                      <td style={{ border: 'none', verticalAlign: 'middle' }}>
                         <div className="d-flex align-items-center">
                           <Button
-                            variant="dark"
-                            size="sm"
-                            className="me-2"
-                            style={{ 
-                              borderRadius: 0, 
-                              width: '30px', 
-                              height: '30px',
-                              padding: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.8rem'
+                            variant="link"
+                            className="product-qty-btn"
+                            style={{
+                              marginRight: 0,
+                              width: '40px',
+                              height: '40px',
+                              fontFamily: "'Roboto', sans-serif",
+                              borderRadius: 0,
+                              lineHeight: '1'
                             }}
                             onClick={() => handleQuantityChange(item.productId, item.quantity, 'decrease')}
+                            onMouseUp={e => e.currentTarget.blur()}
                           >
                             -
                           </Button>
-                          <span>{item.quantity}</span>
+                          <span style={{ width: 40, textAlign: 'center', display: 'inline-block' }}>{item.quantity}</span>
                           <Button
-                            variant="dark"
-                            size="sm"
-                            className="ms-2"
-                            style={{ 
-                              borderRadius: 0, 
-                              width: '30px', 
-                              height: '30px',
-                              padding: 0,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: '0.8rem'
+                            variant="link"
+                            className="product-qty-btn"
+                            style={{
+                              marginLeft: 0,
+                              width: '40px',
+                              height: '40px',
+                              fontFamily: "'Roboto', sans-serif",
+                              borderRadius: 0,
+                              lineHeight: '1'
                             }}
                             onClick={() => handleQuantityChange(item.productId, item.quantity, 'increase')}
+                            onMouseUp={e => e.currentTarget.blur()}
                           >
                             +
                           </Button>
                         </div>
                       </td>
-                      <td>₱{item.subtotal}</td>
-                      <td>
+                      <td style={{ border: 'none', verticalAlign: 'middle' }}>₱{item.subtotal}</td>
+                      <td style={{ border: 'none', verticalAlign: 'middle' }}>
                         <Button
                           variant="danger"
-                          size="sm"
-                          style={{ borderRadius: 0 }}
+                          className="clear-cart-btn"
+                          style={{
+                            borderRadius: 6,
+                            background: '#fff',
+                            color: '#ff6b00',
+                            border: '1px solid #ff6b00',
+                            fontWeight: 600,
+                            fontFamily: "'Roboto', sans-serif",
+                            padding: '8px 16px',
+                            transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+                          }}
                           onClick={() => handleRemoveItem(item.productId)}
+                          onMouseUp={e => e.currentTarget.blur()}
                         >
                           Remove
                         </Button>
@@ -423,9 +434,9 @@ export default function Cart({ setCartItemCount }) {
             {cart.cartItems.map((item) => {
               const product = products[item.productId] || {};
               return (
-                <div key={item._id} className="p-3 border-bottom">
+                <div key={item._id} className="p-3 border-bottom" style={{ fontFamily: "'Roboto', sans-serif" }}>
                   <div className="mb-2">
-                    <Link to={`/products/${item.productId}`} className="text-primary">
+                    <Link to={`/products/${item.productId}`} style={{ color: '#0c4798', textDecoration: 'none', fontWeight: 500 }}>
                       <strong>{product.name || 'Loading...'}</strong>
                     </Link>
                   </div>
@@ -436,39 +447,35 @@ export default function Cart({ setCartItemCount }) {
                     <strong>Quantity:</strong>
                     <div className="d-flex align-items-center mt-1">
                       <Button
-                        variant="dark"
-                        size="sm"
-                        className="me-2"
-                        style={{ 
-                          borderRadius: 0, 
-                          width: '30px', 
-                          height: '30px',
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.8rem'
+                        variant="link"
+                        className="product-qty-btn"
+                        style={{
+                          marginRight: 0,
+                          width: '40px',
+                          height: '40px',
+                          fontFamily: "'Roboto', sans-serif",
+                          borderRadius: 0,
+                          lineHeight: '1'
                         }}
                         onClick={() => handleQuantityChange(item.productId, item.quantity, 'decrease')}
+                        onMouseUp={e => e.currentTarget.blur()}
                       >
                         -
                       </Button>
-                      <span>{item.quantity}</span>
+                      <span style={{ width: 40, textAlign: 'center', display: 'inline-block' }}>{item.quantity}</span>
                       <Button
-                        variant="dark"
-                        size="sm"
-                        className="ms-2"
-                        style={{ 
-                          borderRadius: 0, 
-                          width: '30px', 
-                          height: '30px',
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.8rem'
+                        variant="link"
+                        className="product-qty-btn"
+                        style={{
+                          marginLeft: 0,
+                          width: '40px',
+                          height: '40px',
+                          fontFamily: "'Roboto', sans-serif",
+                          borderRadius: 0,
+                          lineHeight: '1'
                         }}
                         onClick={() => handleQuantityChange(item.productId, item.quantity, 'increase')}
+                        onMouseUp={e => e.currentTarget.blur()}
                       >
                         +
                       </Button>
@@ -477,12 +484,24 @@ export default function Cart({ setCartItemCount }) {
                   <div className="mb-2">
                     <strong>Subtotal:</strong> ₱{item.subtotal}
                   </div>
-                  <div>
+                  <div className="d-flex flex-row gap-2 align-items-center">
                     <Button
-                      variant="danger"
-                      size="sm"
-                      style={{ borderRadius: 0 }}
+                      variant="link"
+                      className="clear-cart-btn"
+                      style={{
+                        borderRadius: 6,
+                        background: '#fff',
+                        color: '#0c4798',
+                        border: '1px solid #0c4798',
+                        fontWeight: 600,
+                        fontFamily: "'Roboto', sans-serif",
+                        padding: '8px 16px',
+                        minWidth: 90,
+                        whiteSpace: 'nowrap',
+                        transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+                      }}
                       onClick={() => handleRemoveItem(item.productId)}
+                      onMouseUp={e => e.currentTarget.blur()}
                     >
                       Remove
                     </Button>
@@ -492,26 +511,56 @@ export default function Cart({ setCartItemCount }) {
             })}
           </div>
         </div>
-        <div className="card-footer" style={{ backgroundColor: '#f8f9fa', borderRadius: '0' }}>
-          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-            <h3 style={{ color: '#FF6B00' }}>Total: ₱{cart.totalPrice}</h3>
-            <div className="d-flex flex-column d-md-block mt-3 mt-md-0">
-              <Button
-                variant="primary"
-                className="me-md-2 mb-2 mb-md-0"
-                style={{ borderRadius: 0 }}
-                onClick={() => setShowModal(true)}
-              >
-                Book Now
-              </Button>
-              <Button
-                variant="danger"
-                style={{ borderRadius: 0 }}
-                onClick={handleClearCart}
-              >
-                Clear Cart
-              </Button>
-            </div>
+        
+        {/* Buttons below the card */}
+        <div className="d-flex flex-column align-items-start mt-3">
+          <h3 style={{ color: '#ff8c00', fontFamily: "'Roboto', sans-serif", fontWeight: 300, }}>Total: ₱{cart.totalPrice}</h3>
+          <div className="d-flex flex-row gap-2">
+            <Button
+              variant="link"
+              className="add-to-cart-btn"
+              style={{
+                borderRadius: 6,
+                minWidth: 140,
+                maxWidth: 160,
+                width: '100%',
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+                boxShadow: '0 6px 18px rgba(69,210,250,0.13)',
+                fontSize: '1rem',
+                padding: '8px 0',
+                fontFamily: 'Roboto, sans-serif',
+                background: '#0c4798',
+                color: '#fff',
+                border: 'none',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+              }}
+              onClick={() => setShowModal(true)}
+              onMouseUp={e => e.currentTarget.blur()}
+            >
+              Book Now
+            </Button>
+            <Button
+              variant="link"
+              className="clear-cart-btn"
+              style={{
+                borderRadius: 6,
+                background: '#fff',
+                color: '#0c4798',
+                border: '1px solid #0c4798',
+                fontWeight: 600,
+                fontFamily: "'Roboto', sans-serif",
+                padding: '8px 16px',
+                minWidth: 140,
+                maxWidth: 140,
+                whiteSpace: 'nowrap',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)'
+              }}
+              onClick={handleClearCart}
+              onMouseUp={e => e.currentTarget.blur()}
+            >
+              Clear Cart
+            </Button>
           </div>
         </div>
       </div>
@@ -521,6 +570,123 @@ export default function Cart({ setCartItemCount }) {
         handleClose={() => setShowModal(false)} 
         handleSubmit={handleBookNow} 
       />
+
+      {/* Booking Modal */}
+      <Modal show={showBookingModal} onHide={() => setShowBookingModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Book a Service</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formName">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formEmail">
+              <Form.Label>Email</Form.Label>
+              <Form.Control
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group controlId="formPhoneNumber">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter your phone number"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                required
+              />
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowBookingModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleBookNow}>
+            Book Now
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <style>
+        {`
+          .product-qty-btn {
+            border: 1px solid #0c4798 !important;
+            color: #0c4798 !important;
+            background: rgba(255,255,255,0.85) !important;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            border-radius: 6px;
+            text-decoration: none !important;
+          }
+          .product-qty-btn:hover, .product-qty-btn:focus {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: 1px solid #0c4798 !important;
+            box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+            transform: scale(1.08);
+          }
+          .add-to-cart-btn {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: none !important;
+            min-width: 140px;
+            max-width: 160px;
+            width: 100%;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px;
+            box-shadow: 0 6px 18px rgba(69,210,250,0.13);
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            font-size: 1rem;
+            padding: 8px 0;
+            font-family: 'Roboto', sans-serif';
+            margin: 0 auto;
+            display: block;
+            text-align: center;
+            text-decoration: none !important;
+          }
+          .add-to-cart-btn:hover, .add-to-cart-btn:focus {
+            background: #08306b !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(69,210,250,0.18);
+            transform: scale(1.06);
+            text-decoration: none !important;
+          }
+          .clear-cart-btn {
+            background: #fff !important;
+            color: #0c4798 !important;
+            border: 1px solid #0c4798 !important;
+            font-weight: 600;
+            font-family: 'Roboto', sans-serif;
+            border-radius: 6px;
+            padding: 8px 16px;
+            transition: all 0.3s cubic-bezier(.4,2,.6,1);
+            text-decoration: none !important;
+          }
+          .clear-cart-btn:hover, .clear-cart-btn:focus {
+            background: #0c4798 !important;
+            color: #fff !important;
+            border: 1px solid #0c4798 !important;
+            box-shadow: 0 2px 8px rgba(69,210,250,0.13);
+            transform: scale(1.08);
+            text-decoration: none !important;
+          }
+        `}
+      </style>
     </Container>
   );
 }
