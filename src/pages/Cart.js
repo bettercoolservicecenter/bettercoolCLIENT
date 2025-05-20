@@ -51,7 +51,29 @@ const GuestInfoModal = ({ show, handleClose, handleSubmit }) => {
               required
             />
           </Form.Group>
-          <Button variant="primary" type="submit">
+          <Button 
+            variant="primary" 
+            type="submit" 
+            style={{
+                borderRadius: '6px',
+                background: '#0c4798',
+                color: '#fff',
+                border: 'none',
+                fontFamily: "'Roboto', sans-serif",
+                padding: '8px 16px',
+                minWidth: '140px',
+                maxWidth: '160px',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+            }}
+            onMouseEnter={e => {
+                e.currentTarget.style.background = '#08306b'; // Darker shade on hover
+                e.currentTarget.style.transform = 'scale(1.05)'; // Slightly enlarge on hover
+            }}
+            onMouseLeave={e => {
+                e.currentTarget.style.background = '#0c4798'; // Reset to original color
+                e.currentTarget.style.transform = 'scale(1)'; // Reset size
+            }}
+          >
             Submit
           </Button>
         </Form>
@@ -210,7 +232,7 @@ export default function Cart({ setCartItemCount }) {
       const data = await response.json();
 
       if (response.ok) {
-        setCart(data.cart);
+        setCart(null);
         setCartItemCount(0);
         notyf.success('Cart cleared successfully');
       } else {
@@ -263,11 +285,11 @@ export default function Cart({ setCartItemCount }) {
 
               if (response.ok) {
                 notyf.success('Product booked successfully!');
-                setCart(null);
+                await handleClearCart();
                 navigate(`/bookings/${bookingData.email}`);
               } else {
                 const errorData = await response.json();
-                notyf.error(errorData.message || 'Failed to book product');
+                notyf.error(errorData.message || 'Failed to update booking');
               }
               return; // Prevent further execution
             } else {
@@ -277,7 +299,7 @@ export default function Cart({ setCartItemCount }) {
           }
         }
 
-        // If no existing bookings, create a new booking (if needed)
+        // If no existing bookings, create a new booking
         const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${bookingData.email}`, {
           method: 'POST',
           headers: {
@@ -288,7 +310,7 @@ export default function Cart({ setCartItemCount }) {
 
         if (response.ok) {
           notyf.success('Product booked successfully!');
-          setCart(null);
+          await handleClearCart();
           navigate(`/bookings/${bookingData.email}`);
         } else {
           const errorData = await response.json();
@@ -307,7 +329,8 @@ export default function Cart({ setCartItemCount }) {
 
   if (isLoading) {
     return (
-      <Container className="mt-5">
+      <Container className="loading-container">
+        <div className="loading-spinner"></div>
         <h2>Loading...</h2>
       </Container>
     );

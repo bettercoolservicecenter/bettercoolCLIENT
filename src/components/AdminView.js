@@ -53,6 +53,7 @@ export default function AdminDashboard({ productsData, fetchData }) {
   });
   const [showDescription, setShowDescription] = useState(false);
   const [selectedDescription, setSelectedDescription] = useState('');
+  const [searchEmail, setSearchEmail] = useState('');
 
   useEffect(() => {
     if (!Array.isArray(productsData)) return;
@@ -438,6 +439,10 @@ export default function AdminDashboard({ productsData, fetchData }) {
             }
         };
 
+        const filteredBookings = Object.entries(allBookings).filter(([userEmail]) =>
+            userEmail.toLowerCase().includes(searchEmail.toLowerCase())
+        );
+
       return (
         <>
           <Container style={tableStyles.container} className='pt-5 mt-5'>
@@ -461,11 +466,20 @@ export default function AdminDashboard({ productsData, fetchData }) {
                   {showBookings ? 'Show Product Details' : 'Show User Bookings'}
                 </Button>
               </div>
+              {showBookings && (
+                <Form.Control
+                  type="text"
+                  placeholder="Search by email"
+                  value={searchEmail}
+                  onChange={(e) => setSearchEmail(e.target.value)}
+                  style={{ marginBottom: '20px' }}
+                />
+              )}
             </div>
 
             {showBookings ? (
               <div className="mt-4">
-                {Object.entries(allBookings).map(([userEmail, userBookings]) => (
+                {filteredBookings.map(([userEmail, userBookings]) => (
                   <Card key={userEmail} className="mb-3">
                     <Card.Header
                       className="text-white"
@@ -502,7 +516,6 @@ export default function AdminDashboard({ productsData, fetchData }) {
                               Status: <strong>{booking.status}</strong>
                             </div>
                             
-                            {/* Conditionally render the buttons based on booking status */}
                             {booking.status === 'Pending' && (
                                 <Button 
                                     variant="success" 

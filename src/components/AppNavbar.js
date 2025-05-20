@@ -11,6 +11,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
   const [navbarOpen, setNavbarOpen] = useState(false);
   const navbarToggleRef = useRef(null); // Define the navbarToggleRef
   const suggestionsRef = useRef(null); // Ref for suggestions container
+  const [expanded, setExpanded] = useState({}); // State to manage accordion
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -72,6 +73,8 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
   }, []);
 
   const handleSearchClick = (productName) => {
+    setSearchQuery(productName); // Set the search query
+    // Navigate to the products page with the search query
     fetch(`${process.env.REACT_APP_API_BASE_URL}/products/search-by-name`, {
       method: 'POST',
       headers: {
@@ -94,6 +97,10 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
       .catch(error => {
         console.error('Error fetching products:', error);
       });
+  };
+
+  const toggleAccordion = (id) => {
+    setExpanded(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const navbarStyle = {

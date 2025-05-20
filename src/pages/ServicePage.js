@@ -214,6 +214,18 @@ const ServicePage = () => {
                 color: '#fff',
                 border: 'none',
                 fontFamily: "'Roboto', sans-serif",
+                padding: '8px 16px',
+                minWidth: '140px',
+                maxWidth: '160px',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#08306b'; // Darker shade on hover
+                e.currentTarget.style.transform = 'scale(1.05)'; // Slightly enlarge on hover
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#0c4798'; // Reset to original color
+                e.currentTarget.style.transform = 'scale(1)'; // Reset size
               }}
             >
               Book Now
@@ -267,10 +279,47 @@ const ServicePage = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowInputModal(false)}>
+          <Button variant="secondary" onClick={() => setShowInputModal(false)} style={{
+            borderRadius: 6,
+            background: '#fff',
+            color: '#0c4798',
+            border: '1px solid #0c4798',
+            fontWeight: 600,
+            fontFamily: "'Roboto', sans-serif",
+            padding: '8px 16px',
+            minWidth: '140px',
+            maxWidth: '160px',
+            transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#0c4798'; // Change background on hover
+            e.currentTarget.style.color = '#fff'; // Change text color on hover
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = '#fff'; // Reset background
+            e.currentTarget.style.color = '#0c4798'; // Reset text color
+          }}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleConfirmBooking}>
+          <Button variant="primary" onClick={handleConfirmBooking} style={{
+            borderRadius: 6,
+            background: '#0c4798',
+            color: '#fff',
+            border: 'none',
+            fontFamily: "'Roboto', sans-serif",
+            padding: '8px 16px',
+            minWidth: '140px',
+            maxWidth: '160px',
+            transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#08306b'; // Darker shade on hover
+            e.currentTarget.style.transform = 'scale(1.05)'; // Slightly enlarge on hover
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = '#0c4798'; // Reset to original color
+            e.currentTarget.style.transform = 'scale(1)'; // Reset size
+          }}>
             Confirm Booking
           </Button>
         </Modal.Footer>
