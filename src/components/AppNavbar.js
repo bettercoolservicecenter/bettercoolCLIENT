@@ -297,7 +297,10 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 </Link>
                 <Link 
                   to="/services"
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    window.scrollTo(0, 0); // Scroll to the top of the page
+                  }}
                   style={{ color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}
