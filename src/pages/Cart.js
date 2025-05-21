@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Table, Button, Card, Modal, Form } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { Notyf } from 'notyf';
+import { fetchExistingBooking } from './Bookings'; // Adjust the import path as necessary
 
 const GuestInfoModal = ({ show, handleClose, handleSubmit }) => {
   const [name, setName] = useState('');
@@ -64,6 +65,7 @@ const GuestInfoModal = ({ show, handleClose, handleSubmit }) => {
                 minWidth: '140px',
                 maxWidth: '160px',
                 transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                marginTop: '10px'
             }}
             onMouseEnter={e => {
                 e.currentTarget.style.background = '#08306b'; // Darker shade on hover
@@ -95,7 +97,7 @@ export default function Cart({ setCartItemCount }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedService, setSelectedService] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
-  const [totalPrice, setTotalPrice] = useState(0);
+  const [totalServiceCost, setTotalServiceCost] = useState(0);
 
   useEffect(() => {
     fetchCart();
@@ -245,86 +247,68 @@ export default function Cart({ setCartItemCount }) {
   };
 
   const handleBookNow = async (guestInfo) => {
-    const bookingData = {
-      email: guestInfo.email,
-      name: guestInfo.name,
-      phoneNumber: guestInfo.phoneNumber,
-      totalPrice: cart.totalPrice,
-      productsBooked: cart.cartItems.map(item => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        subtotal: item.subtotal,
-      })),
-      serviceType: selectedService,
-      size: selectedSize,
-      serviceTotal: totalPrice
-    };
-
     try {
-      // Check for existing bookings
-      const existingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${bookingData.email}`);
-      const existingData = await existingResponse.json();
+        // Fetch existing booking data for the user
+        const existingBookingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${guestInfo.email}`);
+        const existingBookingData = await existingBookingResponse.json();
 
-      if (existingResponse.ok) {
-        // Check if there are existing bookings
-        if (existingData.bookings.length > 0) {
-          const existingBooking = existingData.bookings[0]; // Assuming we are checking the first booking
-
-          // Allow booking if the existing booking is for a product or if productsBooked is empty
-          if (existingBooking.serviceType && existingBooking.size) {
-            // Check if productsBooked is empty
-            if (existingBooking.productsBooked.length === 0) {
-              // Proceed with updating the existing booking
-              const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/update/${existingBooking._id}`, {
-                method: 'PATCH',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(bookingData),
-              });
-
-              if (response.ok) {
-                notyf.success('Product booked successfully!');
-                await handleClearCart();
-                navigate(`/bookings/${bookingData.email}`);
-              } else {
-                const errorData = await response.json();
-                notyf.error(errorData.message || 'Failed to update booking');
-              }
-              return; // Prevent further execution
+        let existingTotalPrice = 0;
+        if (existingBookingResponse.ok) {
+            // Check if the booking data is structured correctly
+            if (existingBookingData && existingBookingData.bookings && existingBookingData.bookings.length > 0) {
+                const latestBooking = existingBookingData.bookings[0]; // Get the latest booking
+                existingTotalPrice = latestBooking.totalPrice || 0; // Get the existing total price
             } else {
-              notyf.error('You cannot book a product while you have a pending service.');
-              return; // Prevent further execution
+                // If no existing booking found, proceed with booking
+                console.log('No existing booking found, proceeding with booking...');
             }
-          }
+        } else {
+            notyf.error(existingBookingData.message || 'Failed to fetch existing booking');
+            return; // Exit if fetching existing booking fails
         }
 
-        // If no existing bookings, create a new booking
-        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now/${bookingData.email}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(bookingData),
+        // Calculate the new total price including the service total
+        const totalPrice = existingTotalPrice + cart.totalPrice + totalServiceCost; // Add the service total to the existing total
+
+        const bookingData = {
+            email: guestInfo.email,
+            name: guestInfo.name,
+            phoneNumber: guestInfo.phoneNumber,
+            totalPrice: totalPrice, // Use the updated total price
+            productsBooked: cart.cartItems.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                subtotal: item.subtotal,
+            })),
+            serviceType: selectedService, // Ensure this is set correctly
+            size: selectedSize, // Ensure this is set correctly
+            serviceTotal: totalServiceCost // Ensure this is calculated correctly
+        };
+
+        console.log('Booking Data:', bookingData); // Debugging line
+
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookingData),
         });
 
         if (response.ok) {
-          notyf.success('Product booked successfully!');
-          await handleClearCart();
-          navigate(`/bookings/${bookingData.email}`);
+            notyf.success('Product booked successfully!');
+            await handleClearCart(); // Clear the cart after successful booking
+            navigate(`/bookings/${bookingData.email}`);
         } else {
-          const errorData = await response.json();
-          notyf.error(errorData.message || 'Failed to book product');
+            const errorData = await response.json();
+            notyf.error(errorData.message || 'Failed to book product');
         }
-      } else {
-        notyf.error('Failed to fetch existing bookings');
-      }
     } catch (error) {
-      console.error('Error during booking:', error);
-      notyf.error('An error occurred while processing your booking');
+        console.error('Error during booking:', error);
+        notyf.error('An error occurred while processing your booking');
     }
 
-    setShowModal(false);
+    setShowModal(false); // Close the modal
   };
 
   if (isLoading) {

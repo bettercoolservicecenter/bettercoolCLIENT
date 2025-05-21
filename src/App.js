@@ -20,6 +20,9 @@ import 'notyf/notyf.min.css';
 import Cart from './pages/Cart';
 import Bookings from './pages/Bookings';
 import './index.css'; // Adjust the path as necessary
+import Footer from './components/Footer';
+import About from './pages/About';
+import Contact from './pages/Contact';
 
 function App() {
   const [user, setUser] = useState({
@@ -113,8 +116,11 @@ function App() {
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/bookings/:email" element={<Bookings />} />
           <Route path="/services" element={<ServicePage />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Error />} />
         </Routes>
+        <Footer />
       </Router>
     </UserProvider>
   );

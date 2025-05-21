@@ -23,8 +23,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
 
   // Function to close navbar when a link is clicked
   const closeNavbar = () => {
-    // Bootstrap lg breakpoint is 992px, so this covers both mobile and tablet
-    if (window.innerWidth < 992 && navbarToggleRef.current && !navbarToggleRef.current.classList.contains('collapsed')) {
+    if (window.innerWidth < 992 && navbarOpen && navbarToggleRef.current) {
       navbarToggleRef.current.click();
     }
   };
@@ -173,7 +172,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
               style={{ height: '2rem', width: 'auto'}} // Same height and margin for spacing
             />
           </Navbar.Brand>
-          <Navbar.Toggle ref={navbarToggleRef} aria-controls="basic-navbar-nav" /> {/* <-- Add this line */}
+          <Navbar.Toggle ref={navbarToggleRef} aria-controls="basic-navbar-nav" onClick={closeNavbar} />
           <Navbar.Collapse id="basic-navbar-nav">
             
 
@@ -269,6 +268,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 <Link 
                   to="/products"
                   state={{ searchCategory: 'Air Conditioner' }}
+                  onClick={closeNavbar}
                   style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}
@@ -278,6 +278,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 <Link 
                   to="/products"
                   state={{ searchCategory: 'Refrigerator' }}
+                  onClick={closeNavbar}
                   style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}
@@ -287,6 +288,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 <Link 
                   to="/products"
                   state={{ searchCategory: 'Washing Machine' }}
+                  onClick={closeNavbar}
                   style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}
@@ -295,6 +297,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 </Link>
                 <Link 
                   to="/services"
+                  onClick={closeNavbar}
                   style={{ color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}

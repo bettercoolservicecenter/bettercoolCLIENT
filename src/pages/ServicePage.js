@@ -45,8 +45,8 @@ const services = {
 
 const ServicePage = () => {
   const navigate = useNavigate();
-  const [selectedService, setSelectedService] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState({});
   const [totalPrice, setTotalPrice] = useState(0);
   const [showInputModal, setShowInputModal] = useState(false);
   const [name, setName] = useState('');
@@ -54,8 +54,8 @@ const ServicePage = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [transportationAllowance, setTransportationAllowance] = useState(0);
   const [pullOutDeliveryAllowance, setPullOutDeliveryAllowance] = useState(0);
-  const [extraKm, setExtraKm] = useState(0);
   const [outOfCoverageKm, setOutOfCoverageKm] = useState(0);
+  const [extraKm, setExtraKm] = useState(0);
   const [selectedTransportation, setSelectedTransportation] = useState('');
   const [selectedPullOut, setSelectedPullOut] = useState('');
   const [isOutOfCoverage, setIsOutOfCoverage] = useState(false);
@@ -63,18 +63,44 @@ const ServicePage = () => {
   const [repairType, setRepairType] = useState('');
   const notyf = new Notyf();
 
+  // Define state variables
+  const [existingProducts, setExistingProducts] = useState([]); // Initialize with an empty array
+  const [selectedService, setSelectedService] = useState(''); // Initialize with an empty string
+  const [selectedSize, setSelectedSize] = useState(''); // Initialize with an empty string
+  const [totalServiceCost, setTotalServiceCost] = useState(0); // Initialize with 0
+
   const handleServiceChange = (e) => {
     const service = e.target.value;
-    setSelectedService(service);
-    setSelectedSize('');
-    setTotalPrice(0);
+    const isChecked = e.target.checked;
+
+    if (isChecked) {
+      setSelectedServices((prev) => [...prev, service]);
+      console.log('Selected Services:', [...selectedServices, service]); // Debugging line
+    } else {
+      setSelectedServices((prev) => prev.filter((s) => s !== service));
+      console.log('Selected Services after unchecking:', selectedServices); // Debugging line
+    }
+    setTotalPrice(0); // Reset total price when services change
   };
 
-  const handleSizeChange = (e) => {
+  const handleSizeChange = (service, e) => {
     const size = e.target.value;
-    setSelectedSize(size);
-    const price = services[selectedService][size];
-    setTotalPrice(price);
+    const price = services[service][size];
+
+    // Update the selected size for the specific service
+    setSelectedSizes((prev) => ({
+      ...prev,
+      [service]: size,
+    }));
+
+    // Recalculate total price
+    const newTotalPrice = Object.keys(selectedSizes).reduce((total, service) => {
+      const size = selectedSizes[service];
+      return total + (size ? services[service][size] : 0);
+    }, 0) + (price || 0); // Add the new size price if selected
+
+    setTotalPrice(newTotalPrice);
+    console.log('New Total Price:', newTotalPrice); // Debugging line
   };
 
   const handleRepairTypeChange = (e) => {
@@ -82,9 +108,9 @@ const ServicePage = () => {
     setRepairType(type);
     
     // Update total price based on the selected repair type
-    if (selectedSize === '1Hp to 2Hp') {
+    if (selectedSizes['Repair/Parts Replacement'] === '1Hp to 2Hp') {
       setTotalPrice(type === 'minor' ? 500 : 700);
-    } else if (selectedSize === '2.5 to 4Hp') {
+    } else if (selectedSizes['Repair/Parts Replacement'] === '2.5 to 4Hp') {
       setTotalPrice(type === 'minor' ? 800 : 1200);
     }
   };
@@ -117,14 +143,20 @@ const ServicePage = () => {
     }
   };
 
-  const handleExtraKmChange = (e) => {
-    const km = parseInt(e.target.value) || 0;
-    setExtraKm(km);
+  const incrementOutOfCoverageKm = () => {
+    setOutOfCoverageKm(prev => prev + 1);
   };
 
-  const handleOutOfCoverageKmChange = (e) => {
-    const km = parseInt(e.target.value) || 0;
-    setOutOfCoverageKm(km);
+  const decrementOutOfCoverageKm = () => {
+    setOutOfCoverageKm(prev => (prev > 0 ? prev - 1 : 0));
+  };
+
+  const incrementExtraKm = () => {
+    setExtraKm(prev => prev + 1);
+  };
+
+  const decrementExtraKm = () => {
+    setExtraKm(prev => (prev > 0 ? prev - 1 : 0));
   };
 
   const handleBookNow = async () => {
@@ -144,100 +176,57 @@ const ServicePage = () => {
   };
 
   const handleConfirmBooking = async () => {
-    const serviceTotal = totalPrice; // Assuming totalPrice is the service price
+    // Calculate the total service cost based on selected services and sizes
+    const totalServiceCost = Object.keys(selectedSizes).reduce((total, service) => {
+        const size = selectedSizes[service];
+        return total + (size ? services[service][size] : 0);
+    }, 0);
 
-    // Calculate the total including allowances
-    const totalWithAllowances = serviceTotal + transportationAllowance + pullOutDeliveryAllowance + (extraKm * 10) + (outsideCoverageKm * 10);
+    // Add allowances to the total service cost
+    const finalServiceTotal = totalServiceCost + transportationAllowance + pullOutDeliveryAllowance + (outOfCoverageKm * 10) + (extraKm * 10);
 
     const bookingData = {
-      email,
-      totalPrice: totalWithAllowances, // Set totalPrice to include allowances
-      name,
-      phoneNumber,
-      serviceType: selectedService,
-      size: selectedSize,
-      serviceTotal, // Include service total if needed separately
+        email,
+        name,
+        phoneNumber,
+        productsBooked: existingProducts.length > 0 ? existingProducts : [], // Ensure this is populated correctly
+        serviceType: selectedServices.join(', '), // Join selected services with a comma
+        size: Object.values(selectedSizes).join(', '), // Join selected sizes with a comma
+        serviceTotal: finalServiceTotal || 0, // Use the updated total service cost
     };
 
+    console.log('Booking Data:', bookingData); // Debugging line
+
     try {
-      // Check for existing bookings
-      const existingResponse = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${email}`);
-      const existingData = await existingResponse.json();
-
-      if (existingResponse.ok) {
-        let existingTotalPrice = 0; // Initialize existingTotalPrice
-        let existingBooking = null; // Initialize existingBooking
-
-        if (existingData.bookings.length > 0) {
-          existingBooking = existingData.bookings[0]; // Define existingBooking here
-          existingTotalPrice = existingBooking.totalPrice; // Set existingTotalPrice from the existing booking
-
-          if (existingBooking.serviceType && existingBooking.size) {
-            notyf.error('You cannot book again while you have a pending or confirmed booking.');
-            navigate(`/bookings/${email}`);
-            return;
-          }
-        }
-
-        // If there is an existing booking, update it
-        if (existingBooking) {
-          const newTotalPrice = existingTotalPrice + totalWithAllowances; // Calculate new total price
-
-          const response = await fetch(`http://localhost:4000/bookings/update/${existingBooking._id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              serviceType: selectedService,
-              size: selectedSize,
-              totalPrice: newTotalPrice, // Update total price
-              productsBooked: existingBooking.productsBooked || [], // Retain existing products
-              serviceTotal, // Include service total if needed
-            }),
-          });
-
-          if (response.ok) {
-            notyf.success('Booking updated successfully!');
-            navigate(`/bookings/${email}`);
-          } else {
-            const errorData = await response.json();
-            notyf.error(errorData.message || 'Failed to update booking');
-          }
-        } else {
-          // If no existing booking, create a new booking
-          const response = await fetch(`http://localhost:4000/bookings/book-now/${email}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/book-now`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
-            body: JSON.stringify(bookingData), // Use bookingData directly
-          });
+            body: JSON.stringify(bookingData),
+        });
 
-          if (response.ok) {
-            notyf.success('Service booked successfully!');
+        if (response.ok) {
+            const data = await response.json();
+            notyf.success(data.message);
             navigate(`/bookings/${email}`);
-          } else {
+        } else {
             const errorData = await response.json();
             notyf.error(errorData.message || 'Failed to book service');
-          }
         }
-      } else {
-        notyf.error('Failed to fetch existing bookings');
-      }
     } catch (error) {
-      console.error('Error during booking:', error);
-      notyf.error('An error occurred while processing your booking');
+        console.error('Error during booking:', error);
+        notyf.error('An error occurred while processing your booking');
     }
 
     setShowInputModal(false); // Close the input modal
   };
 
-  const totalWithExtras = totalPrice + transportationAllowance + pullOutDeliveryAllowance + (extraKm * 10) + (outsideCoverageKm * 10);
+  const totalWithExtras = totalPrice + transportationAllowance + pullOutDeliveryAllowance + (extraKm * 10) + (outOfCoverageKm * 10);
 
   const resetForm = () => {
-    setSelectedService('');
-    setSelectedSize('');
+    setSelectedServices([]);
+    setSelectedSizes({});
     setTotalPrice(0);
     setShowInputModal(false);
     setName('');
@@ -245,12 +234,11 @@ const ServicePage = () => {
     setPhoneNumber('');
     setTransportationAllowance(0);
     setPullOutDeliveryAllowance(0);
-    setExtraKm(0);
     setOutOfCoverageKm(0);
+    setExtraKm(0);
     setSelectedTransportation('');
     setSelectedPullOut('');
     setIsOutOfCoverage(false);
-    setOutsideCoverageKm(0);
     setRepairType('');
   };
 
@@ -265,31 +253,31 @@ const ServicePage = () => {
               {Object.keys(services).map((service) => (
                 <Form.Check
                   key={service}
-                  type="radio"
+                  type="checkbox"
                   label={service}
                   value={service}
-                  checked={selectedService === service}
+                  checked={selectedServices.includes(service)}
                   onChange={handleServiceChange}
                   style={{ fontFamily: "'Roboto', sans-serif" }}
                 />
               ))}
             </Form.Group>
 
-            {selectedService && (
-              <Form.Group>
-                <Form.Label>Select Size</Form.Label>
-                <Form.Control as="select" onChange={handleSizeChange} value={selectedSize} style={{ fontFamily: "'Roboto', sans-serif" }}>
+            {selectedServices.map((service) => (
+              <Form.Group key={service}>
+                <Form.Label>Select Size for {service}</Form.Label>
+                <Form.Control as="select" onChange={(e) => handleSizeChange(service, e)} style={{ fontFamily: "'Roboto', sans-serif" }}>
                   <option value="">Select size</option>
-                  {Object.keys(services[selectedService]).map((size) => (
+                  {Object.keys(services[service]).map((size) => (
                     <option key={size} value={size}>
                       {size}
                     </option>
                   ))}
                 </Form.Control>
               </Form.Group>
-            )}
+            ))}
 
-            {selectedService === 'Repair/Parts Replacement' && selectedSize && (
+            {selectedServices.includes('Repair/Parts Replacement') && (
               <Form.Group>
                 <Form.Label>Select Repair Type</Form.Label>
                 <Form.Check
@@ -309,84 +297,75 @@ const ServicePage = () => {
               </Form.Group>
             )}
 
-            {selectedService && (
-              <>
-                <Form.Group>
-                  <Form.Label>Transportation Allowance</Form.Label>
-                  <Form.Check
-                    type="checkbox"
-                    label="City transportation allowance (more than 6.0 kms) - P200"
-                    value="200"
-                    checked={selectedTransportation === "200"}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedTransportation("200");
-                        setTransportationAllowance(200);
-                      } else {
-                        setSelectedTransportation("");
-                        setTransportationAllowance(0);
-                      }
-                    }}
-                  />
-                  <Form.Check
-                    type="checkbox"
-                    label="Out of coverage area (13.0-27.0 km) - P200"
-                    value="10"
-                    checked={isOutOfCoverage}
-                    onChange={(e) => {
-                      handleTransportationChange(e);
-                      if (e.target.checked) {
-                        setTransportationAllowance(200); // Automatically add 200 for out of coverage
-                      } else {
-                        setTransportationAllowance(0); // Reset allowance if unchecked
-                      }
-                    }}
-                  />
-                  {isOutOfCoverage && (
-                    <Form.Group>
-                      <Form.Label>Enter KM for Out of Coverage Area</Form.Label>
-                      <Form.Control
-                        type="number"
-                        placeholder="Enter extra km"
-                        onChange={handleOutOfCoverageKmChange}
-                      />
-                    </Form.Group>
-                  )}
-                </Form.Group>
+            {/* Always visible Transportation Allowance */}
+            <Form.Group>
+              <Form.Label>Transportation Allowance</Form.Label>
+              <Form.Check
+                type="radio"
+                label="Within service coverage (more than 6 km) - P100"
+                value="100"
+                checked={selectedTransportation === "100"}
+                onChange={(e) => {
+                  setSelectedTransportation("100");
+                  setTransportationAllowance(100); // Set allowance to 100
+                }}
+              />
+              <Form.Check
+                type="radio"
+                label="City transportation allowance (more than 6.0 kms) - P200"
+                value="200"
+                checked={selectedTransportation === "200"}
+                onChange={(e) => {
+                  setSelectedTransportation("200");
+                  setTransportationAllowance(200); // Set allowance to 200
+                }}
+              />
+              <Form.Check
+                type="checkbox"
+                label="Out of coverage area (13.0-27.0 km) - P200, P10/km"
+                value="10"
+                checked={isOutOfCoverage}
+                onChange={(e) => {
+                  handleTransportationChange(e);
+                  if (e.target.checked) {
+                    setTransportationAllowance(200); // Automatically add 200 for out of coverage
+                  } else {
+                    setTransportationAllowance(0); // Reset allowance if unchecked
+                  }
+                }}
+              />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Button className='product-qty-btn' variant="secondary" style={{ marginLeft: '0', width: '40px', height: '40px', fontFamily: "'Roboto', sans-serif", borderRadius: '0', lineHeight: '1', background: '#fff', color: '#0c4798', border: '1px solid #0c4798' }} onClick={decrementOutOfCoverageKm}>-</Button>
+                <span style={{ margin: '0 10px' }}>{outOfCoverageKm}</span>
+                <Button className='product-qty-btn' variant="secondary" style={{ marginLeft: '0', width: '40px', height: '40px', fontFamily: "'Roboto', sans-serif", borderRadius: '0', lineHeight: '1', background: '#fff', color: '#0c4798', border: '1px solid #0c4798' }} onClick={incrementOutOfCoverageKm}>+</Button>
+              </div>
+            </Form.Group>
 
-                <Form.Group>
-                  <Form.Label>Pull-out and Delivery Allowance</Form.Label>
-                  <Form.Check
-                    type="radio"
-                    label="Within service coverage (P600)"
-                    value="600"
-                    checked={selectedPullOut === "600"}
-                    onChange={handlePullOutChange}
-                  />
-                  <Form.Check
-                    type="radio"
-                    label="Outside coverage area (P10/km)"
-                    value="10"
-                    checked={selectedPullOut === "10"}
-                    onChange={handlePullOutChange}
-                  />
-                  {selectedPullOut === "10" && ( // Show input field only if outside coverage is selected
-                    <Form.Group>
-                      <Form.Label>Enter KM for Outside Coverage Area</Form.Label>
-                      <Form.Control
-                        type="number"
-                        placeholder="Enter extra km"
-                        onChange={(e) => {
-                          const km = parseInt(e.target.value) || 0;
-                          setOutsideCoverageKm(km); // Set the outside coverage km
-                        }}
-                      />
-                    </Form.Group>
-                  )}
-                </Form.Group>
-              </>
-            )}
+            {/* Always visible Pull-out and Delivery Allowance */}
+            <Form.Group>
+              <Form.Label>Pull-out and Delivery Allowance</Form.Label>
+              <Form.Check
+                type="radio"
+                label="Within service coverage (P600)"
+                value="600"
+                checked={selectedPullOut === "600"}
+                onChange={handlePullOutChange}
+              />
+              <Form.Check
+                type="radio"
+                label="Outside coverage area (P10/km)"
+                value="10"
+                checked={selectedPullOut === "10"}
+                onChange={handlePullOutChange}
+              />
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Button className='product-qty-btn' style={{ marginLeft: '0', width: '40px', height: '40px', fontFamily: "'Roboto', sans-serif", borderRadius: '0', lineHeight: '1', background: '#fff', color: '#0c4798', border: '1px solid #0c4798' }} onClick={decrementExtraKm}>-</Button>
+                <span style={{ margin: '0 10px' }}>{extraKm}</span>
+                <Button className='product-qty-btn' style={{ marginLeft: '0', width: '40px', height: '40px', fontFamily: "'Roboto', sans-serif", borderRadius: '0', lineHeight: '1', background: '#fff', color: '#0c4798', border: '1px solid #0c4798' }} onClick={incrementExtraKm}>+</Button>
+              </div>
+            </Form.Group>
 
+            {/* Total Calculation */}
             {totalWithExtras > 0 && (
               <Row className="mt-3">
                 <Col>
@@ -396,6 +375,7 @@ const ServicePage = () => {
               </Row>
             )}
 
+            {/* Book Now Button */}
             <Button
               variant="primary"
               onClick={handleBookNow}

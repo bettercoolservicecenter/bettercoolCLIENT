@@ -11,6 +11,7 @@ import {
 import { Notyf } from 'notyf';
 import 'notyf/notyf.min.css';
 import UserContext from '../context/UserContext';
+import { Link } from 'react-router-dom';
 
 const DescriptionModal = ({ show, handleClose, description }) => (
     <Modal show={show} onHide={handleClose}>
@@ -494,48 +495,46 @@ export default function AdminDashboard({ productsData, fetchData }) {
                     </Card.Header>
                     <Collapse in={expandedUsers[userEmail]}>
                       <Card.Body>
-                        {userBookings.map((booking) => (
-                          <div key={booking._id} className="mb-3">
-                            <div className="mb-2">
-                              Booked on {formatDate(booking.orderedOn)}:
+                        {userBookings.map((booking) => {
+                          const subtotal = booking.productsBooked.reduce((total, product) => total + product.subtotal, 0);
+                          const serviceTotal = booking.serviceTotal || 0; // Assuming serviceTotal is part of the booking object
+
+                          const total = subtotal + serviceTotal; // Calculate the total
+
+                          return (
+                            <div key={booking._id} className="mb-3">
+                              <div className="mb-2">
+                                Booked on {formatDate(booking.orderedOn)}:
+                              </div>
+                              <ul style={{ listStyleType: 'circle', paddingLeft: '20px' }}>
+                                {booking.productsBooked.map((product) => (
+                                  <li key={product._id}>
+                                    Quantity: {product.quantity}
+                                    <div style={{ color: '#666' }}>
+                                      Subtotal: ₱{product.subtotal}
+                                    </div>
+                                    <div style={{ color: '#666' }}>
+                                      Product Name: <Link to={`/products/${product.productId}`} style={{ color: '#0d6efd', textDecoration: 'underline' }}>
+                                        {product.name}
+                                      </Link>
+                                    </div>
+                                    <div style={{ color: '#666', marginLeft: '20px' }}>
+                                      Service Type: {booking.serviceType || 'N/A'}<br />
+                                      Size: {booking.size || 'N/A'}<br />
+                                      Service Total: ₱{serviceTotal || '0.00'}
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                              <div style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
+                                Total: ₱{total} {/* Display the combined total */}
+                              </div>
+                              <div>
+                                Status: <strong>{booking.status}</strong>
+                              </div>
                             </div>
-                            <ul style={{ listStyleType: 'circle', paddingLeft: '20px' }}>
-                              {booking.productsBooked.map((product) => (
-                                <li key={product._id}>
-                                  Quantity: {product.quantity}
-                                  <div style={{ color: '#666' }}>
-                                    Subtotal: ₱{product.subtotal}
-                                  </div>
-                                </li>
-                              ))}
-                            </ul>
-                            <div style={{ color: '#ff6b6b', fontWeight: 'bold' }}>
-                              Total: ₱{booking.totalPrice}
-                            </div>
-                            <div>
-                              Status: <strong>{booking.status}</strong>
-                            </div>
-                            
-                            {booking.status === 'Pending' && (
-                                <Button 
-                                    variant="success" 
-                                    onClick={() => confirmBooking(booking._id)} 
-                                    style={{ borderRadius: '0' }}
-                                >
-                                    Confirm Booking
-                                </Button>
-                            )}
-                            {booking.status === 'Confirmed' && (
-                                <Button 
-                                    variant="success" 
-                                    onClick={() => completeBooking(booking._id)} 
-                                    style={{ borderRadius: '0' }}
-                                >
-                                    Complete Booking
-                                </Button>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </Card.Body>
                     </Collapse>
                   </Card>

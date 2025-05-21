@@ -60,6 +60,14 @@ const Bookings = () => {
     }
   };
 
+  const calculateTotalPrice = (booking) => {
+    const productTotal = booking.productsBooked.reduce((acc, product) => {
+      const productPrice = products[product.productId]?.price || 0;
+      return acc + (productPrice * product.quantity);
+    }, 0);
+    return productTotal + (booking.serviceTotal || 0);
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) {
@@ -172,7 +180,7 @@ const Bookings = () => {
               <strong>Service Type:</strong> {booking.serviceType || 'N/A'}<br />
               <strong>Size:</strong> {booking.size || 'N/A'}<br />
               <strong>Service Total:</strong> ₱{booking.serviceTotal || '0.00'}<br />
-              <strong style={{ color: '#666' }}>Total Price:</strong> <span style={{ color: 'orange' }}>₱{booking.totalPrice}</span><br />
+              <strong style={{ color: '#666' }}>Total Price:</strong> <span style={{ color: 'orange' }}>₱{calculateTotalPrice(booking).toFixed(2)}</span><br />
               <strong>Status:</strong> {booking.status || 'Pending'}
             </div>
             <div className="mt-3">
@@ -319,6 +327,19 @@ const Bookings = () => {
       </style>
     </Container>
   );
+};
+
+export const fetchExistingBooking = async (email) => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/bookings/my-bookings/${email}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch existing booking');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching existing booking:', error);
+        throw error; // Rethrow the error for handling in Cart.js
+    }
 };
 
 export default Bookings;
