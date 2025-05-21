@@ -43,7 +43,7 @@ const Footer = () => {
               <a href="mailto:aqpaba@yahoo.com" style={linkStyle}>
                 <FaEnvelope size={20} />
               </a>
-              <a href="https://web.facebook.com/messages/t/109982958447420" style={linkStyle} target="_blank" rel="noopener noreferrer">
+              <a href="https://m.me/100083403047450" style={linkStyle} target="_blank" rel="noopener noreferrer">
                 <FaFacebookMessenger size={20} />
               </a>
             </div>

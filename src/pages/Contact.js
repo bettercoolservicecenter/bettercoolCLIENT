@@ -18,7 +18,7 @@ const Contact = () => {
   };
 
   const handleMessenger = () => {
-    window.open('https://web.facebook.com/messages/t/109982958447420'); // Opens Facebook Messenger
+    window.open('https://m.me/100083403047450'); // Opens Facebook Messenger
   };
 
   const handleVisitLocation = () => {
