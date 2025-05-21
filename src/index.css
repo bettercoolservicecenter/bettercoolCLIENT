@@ -170,3 +170,37 @@ h2 {
   box-shadow: 0 2px 8px rgba(69,210,250,0.13);
   transform: scale(1.08);
 }
+
+.category-links {
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  text-align: left;
+  width: 80%;
+}
+
+@media (max-width: 767px) {
+  .category-links {
+    width: 100%;
+    text-align: left;
+    font-size: 0.75rem;
+  }
+
+  .category-links a {
+    display: inline-flex;
+    margin: 0;
+  }
+}
+
+.category-link {
+  padding: 0.2rem 0.2rem; /* smaller padding */
+  color: #000;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .category-link {
+    padding: 0.2rem 0.2rem; /* even smaller on mobile */
+    font-size: 0.7rem;
+    
+  }
+}

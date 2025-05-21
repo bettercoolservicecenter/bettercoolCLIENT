@@ -43,82 +43,85 @@ export default function FeaturedProducts() {
             Featured Products
           </h3>
         </Col>
-        <Col xs={12} md={6} className="text-center text-md-end">
-          <Link
-            to="/products"
-            style={{
-              padding: '8px 0',
-              minWidth: '110px',
-              maxWidth: '130px',
-              width: '100%',
-              border: '1px solid #0c4798',
-              color: '#0c4798',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
-              fontWeight: 600,
-              letterSpacing: '0.5px',
-              background: 'rgba(255,255,255,0.85)',
-              boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
-              margin: '0 auto',
-              display: 'inline-block',
-              textAlign: 'center'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#0c4798';
-              e.currentTarget.style.color = '#fff';
-              e.currentTarget.style.border = 'none';
-              e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
-              e.currentTarget.style.transform = 'scale(1.06)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
-              e.currentTarget.style.color = '#0c4798';
-              e.currentTarget.style.border = '1px solid #0c4798';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            View More
-          </Link>
-          <Link
-            to="/services"
-            style={{
-              padding: '8px 0',
-              minWidth: '110px',
-              maxWidth: '130px',
-              width: '100%',
-              border: '1px solid #0c4798',
-              color: '#0c4798',
-              textDecoration: 'none',
-              borderRadius: '6px',
-              transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
-              fontWeight: 600,
-              letterSpacing: '0.5px',
-              background: 'rgba(255,255,255,0.85)',
-              boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
-              margin: '0 10px',
-              display: 'inline-block',
-              textAlign: 'center'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#0c4798';
-              e.currentTarget.style.color = '#fff';
-              e.currentTarget.style.border = 'none';
-              e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
-              e.currentTarget.style.transform = 'scale(1.06)';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
-              e.currentTarget.style.color = '#0c4798';
-              e.currentTarget.style.border = '1px solid #0c4798';
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-          >
-            Book a Service
-          </Link>
-        </Col>
+        {/* Hide buttons on mobile screens */}
+        {window.innerWidth >= 768 && (
+          <Col xs={12} md={6} className="text-center text-md-end">
+            <Link
+              to="/products"
+              style={{
+                padding: '8px 0',
+                minWidth: '110px',
+                maxWidth: '130px',
+                width: '100%',
+                border: '1px solid #0c4798',
+                color: '#0c4798',
+                textDecoration: 'none',
+                borderRadius: '6px',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+                background: 'rgba(255,255,255,0.85)',
+                boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
+                margin: '0 auto',
+                display: 'inline-block',
+                textAlign: 'center'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#0c4798';
+                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.border = 'none';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
+                e.currentTarget.style.transform = 'scale(1.06)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
+                e.currentTarget.style.color = '#0c4798';
+                e.currentTarget.style.border = '1px solid #0c4798';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              View More
+            </Link>
+            <Link
+              to="/services"
+              style={{
+                padding: '8px 0',
+                minWidth: '110px',
+                maxWidth: '130px',
+                width: '100%',
+                border: '1px solid #0c4798',
+                color: '#0c4798',
+                textDecoration: 'none',
+                borderRadius: '6px',
+                transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+                fontWeight: 600,
+                letterSpacing: '0.5px',
+                background: 'rgba(255,255,255,0.85)',
+                boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
+                margin: '0 10px',
+                display: 'inline-block',
+                textAlign: 'center'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#0c4798';
+                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.border = 'none';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
+                e.currentTarget.style.transform = 'scale(1.06)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
+                e.currentTarget.style.color = '#0c4798';
+                e.currentTarget.style.border = '1px solid #0c4798';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              Book a Service
+            </Link>
+          </Col>
+        )}
       </Row>
       <style>
         {`
@@ -153,6 +156,81 @@ export default function FeaturedProducts() {
           />
         ))}
       </Row>
+      {/* Buttons for mobile screens */}
+      {window.innerWidth < 768 && (
+        <Row className="text-center" style={{ marginBottom: '20px' }}>
+        <Col xs={12} style={{ marginBottom: '10px' }}>
+          <Link
+            to="/products"
+            style={{
+              display: 'block',
+              padding: '10px 0',
+              width: '100%',
+              border: '1px solid #0c4798',
+              color: '#0c4798',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              background: 'rgba(255,255,255,0.85)',
+              boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#0c4798';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.border = 'none';
+              e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
+              e.currentTarget.style.transform = 'scale(1.06)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
+              e.currentTarget.style.color = '#0c4798';
+              e.currentTarget.style.border = '1px solid #0c4798';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            View More
+          </Link>
+        </Col>
+        <Col xs={12}>
+          <Link
+            to="/services"
+            style={{
+              display: 'block',
+              padding: '10px 0',
+              width: '100%',
+              border: '1px solid #0c4798',
+              color: '#0c4798',
+              textDecoration: 'none',
+              borderRadius: '6px',
+              transition: 'all 0.3s cubic-bezier(.4,2,.6,1)',
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              background: 'rgba(255,255,255,0.85)',
+              boxShadow: '0 2px 8px rgba(69,210,250,0.07)',
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.background = '#0c4798';
+              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.border = 'none';
+              e.currentTarget.style.boxShadow = '0 6px 18px rgba(69,210,250,0.13)';
+              e.currentTarget.style.transform = 'scale(1.06)';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.85)';
+              e.currentTarget.style.color = '#0c4798';
+              e.currentTarget.style.border = '1px solid #0c4798';
+              e.currentTarget.style.boxShadow = '0 2px 8px rgba(69,210,250,0.07)';
+              e.currentTarget.style.transform = 'scale(1)';
+            }}
+          >
+            Book a Service
+          </Link>
+        </Col>
+      </Row>
+      )}
     </Container>
   );
 }

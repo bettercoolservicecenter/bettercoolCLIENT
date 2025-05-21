@@ -218,7 +218,7 @@ export default function UserView({ productsData = [] }) {
       scrollToAllProducts();
       setPendingNavbarScroll(false);
     }
-  }, [products, pendingNavbarScroll]);
+  }, [pendingNavbarScroll]);
 
   // Brand list
   const brands = [
