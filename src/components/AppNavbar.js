@@ -13,6 +13,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
   const suggestionsRef = useRef(null); // Ref for suggestions container
   const [expanded, setExpanded] = useState({}); // State to manage accordion
   const navigate = useNavigate(); // Use useNavigate instead of useHistory
+  const filterRef = useRef(null); // Added filterRef
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -159,6 +160,22 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
     }
   };
 
+  const handleSearchByName = (category) => {
+    // Implement the logic to search by category
+    console.log(`Searching for products in category: ${category}`);
+  };
+
+  const scrollToAllProducts = () => {
+    setTimeout(() => {
+      if (filterRef.current) {
+        const navbarHeight = 65; // Adjust this value based on your navbar height
+        const offset = navbarHeight; // Adjust for navbar height
+        const top = filterRef.current.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    }, 200); // Slightly longer delay for reliability
+  };
+
   return (
     <div style={{ width: '100vw', overflowX: 'hidden', margin: 0, padding: 0 }}>
       <Navbar
@@ -279,7 +296,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
               )}
               {/* Search Text Below the Search Bar as Links */}
               <div style={{ ...searchTextStyle, marginTop: '0.1rem', textAlign: 'left', width: '80%' }}>
-                <Link 
+              <Link 
                   to="/products"
                   state={{ searchCategory: 'Air Conditioner' }}
                   onClick={closeNavbar}
@@ -302,7 +319,11 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                 <Link 
                   to="/products"
                   state={{ searchCategory: 'Washing Machine' }}
-                  onClick={closeNavbar}
+                  onClick={() => {
+                    closeNavbar();
+                    handleSearchByName('Washing Machine'); // Trigger search by category
+                    scrollToAllProducts(); // Call the scroll function
+                  }}
                   style={{ marginRight: '10px', color: 'black', cursor: 'pointer', textDecoration: 'none' }}
                   onMouseEnter={e => e.target.style.color = 'blue'}
                   onMouseLeave={e => e.target.style.color = 'black'}

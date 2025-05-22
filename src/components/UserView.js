@@ -74,15 +74,13 @@ export default function UserView({ productsData = [] }) {
   // Scroll to All Products section
   const scrollToAllProducts = () => {
     setTimeout(() => {
-      if (allProductsRef.current) {
-        const navbarHeight = 65;
-        // Add more spacing below the sticky accordion
-        const extraSpacing = 48; // Increase this value for more space (was 24)
-        const offset = isSticky ? (navbarHeight + accordionHeight + extraSpacing) : (navbarHeight + extraSpacing);
-        const top = allProductsRef.current.getBoundingClientRect().top + window.scrollY - offset;
+      if (filterRef.current) {
+        const navbarHeight = 65; // Adjust this value based on your navbar height
+        const offset = navbarHeight; // Adjust for navbar height
+        const top = filterRef.current.getBoundingClientRect().top + window.scrollY - offset;
         window.scrollTo({ top, behavior: 'smooth' });
       }
-    }, 200); // Slightly longer delay for reliability
+    }, 500); // Slightly longer delay for reliability
   };
 
   // Modified handleSearchByName to accept a name and scroll
@@ -103,6 +101,7 @@ export default function UserView({ productsData = [] }) {
       const data = await response.json();
       const activeProducts = Array.isArray(data) ? data.filter(product => product.isActive) : [];
       setProducts(activeProducts);
+      setPendingNavbarScroll(true);
     } catch (error) {
       console.error('Error searching products:', error);
     }
@@ -261,12 +260,6 @@ export default function UserView({ productsData = [] }) {
     filterProducts(productName, selectedBrand);
     // eslint-disable-next-line
   }, [productName, selectedBrand]);
-
-  useEffect(() => {
-    if (allProductsRef.current) {
-      allProductsRef.current.scrollIntoView({ behavior: 'smooth' }); // Scroll to the All Products section
-    }
-  }, [productsData]); // Trigger scroll when productsData changes
 
   useEffect(() => {
     if (filterRef.current) {
@@ -526,6 +519,7 @@ export default function UserView({ productsData = [] }) {
         >
           <style>{customAccordionStyles}</style>
           <Accordion
+            ref={filterRef}
             activeKey={accordionActiveKey}
             onSelect={setAccordionActiveKey}
             className={isSticky ? '' : 'mb-4'}
