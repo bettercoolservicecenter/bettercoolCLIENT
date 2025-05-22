@@ -1,6 +1,6 @@
 import React, { useContext, useRef, useState, useEffect } from 'react';
 import { Container, Nav, Navbar, Accordion, Card } from 'react-bootstrap';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaSearch } from 'react-icons/fa'; // Import the cart icon and magnifying glass icon
 import UserContext from '../context/UserContext';
 
@@ -12,6 +12,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
   const navbarToggleRef = useRef(null); // Define the navbarToggleRef
   const suggestionsRef = useRef(null); // Ref for suggestions container
   const [expanded, setExpanded] = useState({}); // State to manage accordion
+  const navigate = useNavigate(); // Use useNavigate instead of useHistory
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -147,6 +148,16 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
     marginTop: '0.5rem', // Space between the search bar and the text
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(searchQuery);
+      navigate('/products', { state: { searchCategory: searchQuery } });
+    } else {
+      console.error('onSearch is not defined');
+    }
+  };
+
   return (
     <div style={{ width: '100vw', overflowX: 'hidden', margin: 0, padding: 0 }}>
       <Navbar
@@ -177,7 +188,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
             
 
             {/* Search Bar */}
-            <form onSubmit={(e) => { e.preventDefault(); onSearch(searchQuery); }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+            <form onSubmit={handleSearchSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
               <div style={{ position: 'relative', width: '81%' }}> {/* Wrap input and icon in a relative container */}
                 <input
                   type="text"
@@ -319,12 +330,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                       <Nav.Link as={NavLink} to="/profile" style={linkStyle} onClick={closeNavbar}>Profile</Nav.Link>
                     </>
                   )}
-                  <div style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}> {/* Prevent wrapping */}
-                    {user.isAdmin && (
-                      <Nav.Link as={NavLink} to="/products" style={linkStyle} onClick={closeNavbar}>
-                        {window.innerWidth < 768 ? 'Admin' : 'Admin Dashboard'}
-                      </Nav.Link>
-                    )}
+                  <div style={{ display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
                     <Nav.Link 
                       as={NavLink} 
                       to="/logout" 
@@ -332,7 +338,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                         closeNavbar();
                         handleLogout();
                       }} 
-                      style={linkStyle}
+                      style={{ ...linkStyle, color: '#0e3e8e' }}
                     >
                       {window.innerWidth < 768 ? 'Out' : 'Log Out'}
                     </Nav.Link>

@@ -31,6 +31,7 @@ function App() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   function unsetUser() {
     localStorage.clear();
@@ -39,6 +40,11 @@ function App() {
       isAdmin: null
     });
   }
+
+  const handleProductSearch = (query) => {
+    console.log('Searching for:', query);
+    // You can also navigate or filter products here
+  };
 
   const fetchCartItemCount = async () => {
     try {
@@ -103,10 +109,10 @@ function App() {
   return (
     <UserProvider value={{ user, setUser, unsetUser }}>
       <Router>
-        <AppNavbar cartItemCount={cartItemCount} />
+        <AppNavbar cartItemCount={cartItemCount} onSearch={setSearchQuery}/>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products cartItemCount={cartItemCount} />} />
+          <Route path="/products" element={<Products cartItemCount={cartItemCount} searchQuery={searchQuery}/>} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<Profile />} />

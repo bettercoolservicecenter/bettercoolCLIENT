@@ -1,7 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import FeaturedProducts from '../components/FeaturedProducts';
 
 export default function Home() {
+  const navigate = useNavigate();
+
+  const handleSearch = (query) => {
+    navigate('/products', { state: { searchCategory: query } }); // Navigate with search query
+  };
+
   return (
     <div style={{
       margin: 0,
@@ -40,6 +47,16 @@ export default function Home() {
       }}>
         <FeaturedProducts />
       </div>
+
+      <input
+        type="text"
+        placeholder="Search products..."
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            handleSearch(e.target.value); // Call handleSearch on Enter
+          }
+        }}
+      />
     </div>
   );
 }

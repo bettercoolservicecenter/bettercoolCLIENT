@@ -34,31 +34,21 @@ export default function Products({ cartItemCount }) {
       .catch(error => console.error('Error fetching products:', error));
   };
 
+  const location = useLocation();
   useEffect(() => {
-    const searchCategory = window.history.state?.searchCategory; // Get the search category from state
+    const searchCategory = location.state?.searchCategory; // Get the search category from state
     if (searchCategory) {
-      console.log('Setting search query to:', searchCategory); // Debugging line
+      console.log('Setting search query to:', searchCategory);
       fetchData(searchCategory); // Fetch products with the search category
     } else {
       fetchData(); // Fetch all products if no category
     }
-  }, [user]);
+  }, [user, location]);
 
   // Function to handle search
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
-
-  const location = useLocation();
-  useEffect(() => {
-    const searchCategory = location.state?.searchCategory;
-    if (searchCategory) {
-      console.log('Setting search query to:', searchCategory);
-      fetchData(searchCategory);
-    } else {
-      fetchData();
-    }
-  }, [user, location]); 
 
   // Filter products based on search query
   const filteredProducts = products.filter(product => 
