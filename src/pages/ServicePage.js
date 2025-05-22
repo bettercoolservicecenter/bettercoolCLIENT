@@ -28,8 +28,8 @@ const services = {
     '2.5Hp to 4Hp': 350,
   },
   'Repair/Parts Replacement': {
-    '1Hp to 2Hp': 700,
-    '2.5 to 4Hp': 1200,
+    '1Hp to 2Hp': 0,
+    '2.5 to 4Hp': 0,
   },
   'System Reprocess': {
     '1Hp to 2.5Hp': 3500,
@@ -109,9 +109,9 @@ const ServicePage = () => {
     
     // Update total price based on the selected repair type
     if (selectedSizes['Repair/Parts Replacement'] === '1Hp to 2Hp') {
-      setTotalPrice(type === 'minor' ? 500 : 700);
+        setTotalPrice(type === 'minor' ? totalPrice + 500 : totalPrice + 700);
     } else if (selectedSizes['Repair/Parts Replacement'] === '2.5 to 4Hp') {
-      setTotalPrice(type === 'minor' ? 800 : 1200);
+        setTotalPrice(type === 'minor' ? totalPrice + 800 : totalPrice + 1200);
     }
   };
 
@@ -182,8 +182,15 @@ const ServicePage = () => {
         return total + (size ? services[service][size] : 0);
     }, 0);
 
-    // Add allowances to the total service cost
-    const finalServiceTotal = totalServiceCost + transportationAllowance + pullOutDeliveryAllowance + (outOfCoverageKm * 10) + (extraKm * 10);
+    // Declare finalServiceTotal as let to allow reassignment
+    let finalServiceTotal = totalServiceCost + transportationAllowance + pullOutDeliveryAllowance + (outOfCoverageKm * 10) + (extraKm * 10);
+
+    // Include repair costs based on selected repair type
+    if (selectedSizes['Repair/Parts Replacement']) {
+        const repairSize = selectedSizes['Repair/Parts Replacement'];
+        const repairCost = repairType === 'minor' ? (repairSize === '1Hp to 2Hp' ? 500 : 800) : (repairSize === '1Hp to 2Hp' ? 700 : 1200);
+        finalServiceTotal += repairCost; // Add repair cost to the total
+    }
 
     const bookingData = {
         email,
