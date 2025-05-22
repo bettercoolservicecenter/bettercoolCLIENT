@@ -47,18 +47,6 @@ export default function Home() {
       }}>
         <FeaturedProducts />
       </div>
-
-      <div>
-        <input
-          type="text"
-          placeholder="Search products..."
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleSearch(e.target.value); // Call handleSearch on Enter
-            }
-          }}
-        />
-      </div>
     </div>
   );
 }
