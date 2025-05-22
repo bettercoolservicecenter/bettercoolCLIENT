@@ -55,6 +55,13 @@ export default function Products({ cartItemCount }) {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Scroll to the desired position after products are loaded
+  useEffect(() => {
+    // Adjust the Y-coordinate to where you want to scroll
+    const scrollToPosition = 500; // Change this value as needed
+    window.scrollTo({ top: scrollToPosition, behavior: 'smooth' });
+  }, [filteredProducts]); // Trigger scroll when filteredProducts changes
+
   return (
     <>
       <AppNavbar cartItemCount={cartItemCount} onSearch={handleSearch} />

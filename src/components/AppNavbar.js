@@ -153,6 +153,7 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
     if (onSearch) {
       onSearch(searchQuery);
       navigate('/products', { state: { searchCategory: searchQuery } });
+      setSuggestions([]); // Clear suggestions after submitting the search
     } else {
       console.error('onSearch is not defined');
     }
@@ -227,8 +228,10 @@ export default function AppNavbar({ cartItemCount, onSearch }) { // Accept cartI
                     height: '2.1rem',
                     textAlign: 'center'
                   }}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.preventDefault(); // Prevent default link behavior
                     if (searchQuery) {
+                      handleSearchSubmit(e); // Trigger search on icon click
                       setSuggestions([]); // Clear suggestions before navigating
                     }
                   }}

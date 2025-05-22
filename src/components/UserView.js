@@ -1,6 +1,6 @@
 import { Container, Form, Button, Row, Col, Accordion } from 'react-bootstrap';
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ProductCard from './ProductCard';
 
 export default function UserView({ productsData = [] }) {
@@ -18,10 +18,15 @@ export default function UserView({ productsData = [] }) {
   const accordionRef = useRef(null);
   const allProductsRef = useRef(null); // Add this ref
   const [selectedHorsepower, setSelectedHorsepower] = useState(''); // New state for horsepower
-
+  const filterRef = useRef(null); // Create a ref for the filter section
+  const navigate = useNavigate();
   useEffect(() => {
     setProducts(productsData);
   }, [productsData]);
+
+  const handleViewMore = () => {
+    navigate('/products', { state: { searchCategory: '' } }); // Navigate to Products page
+  };
 
   useEffect(() => {
     // Store the original top position of the accordion
@@ -257,6 +262,18 @@ export default function UserView({ productsData = [] }) {
     // eslint-disable-next-line
   }, [productName, selectedBrand]);
 
+  useEffect(() => {
+    if (allProductsRef.current) {
+      allProductsRef.current.scrollIntoView({ behavior: 'smooth' }); // Scroll to the All Products section
+    }
+  }, [productsData]); // Trigger scroll when productsData changes
+
+  useEffect(() => {
+    if (filterRef.current) {
+      filterRef.current.scrollIntoView({ behavior: 'smooth' }); // Scroll to the filter section
+    }
+  }, [productsData]); // Trigger scroll when productsData changes
+
   return (
     <Container style={customStyles.container}>
       <h2 style={{ fontFamily: 'Roboto', fontWeight: 'bold', textTransform: 'uppercase' }} className="text-center mb-4">
@@ -379,6 +396,7 @@ export default function UserView({ productsData = [] }) {
                 e.stopPropagation();
                 handleSearchByName('Air Conditioner');
                 scrollToAllProducts();
+                handleViewMore();
               }}
               onMouseUp={e => e.currentTarget.blur()} // <-- Add this line
             >
