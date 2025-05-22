@@ -77,9 +77,10 @@ const About = () => {
               width="60%" 
               height="100%" 
               allowFullScreen="" 
+              
               loading="lazy" 
               referrerPolicy="no-referrer-when-downgrade"
-              style={{ border: 0 }} 
+              style={{ border: 0, minWidth: '400px' }} 
             ></iframe>
           </div>
         </Col>
